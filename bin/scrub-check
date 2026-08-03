@@ -101,6 +101,19 @@ check_binaries() {
 # ---------------------------------------------------------------------------
 # 2. Banned literals. Grouped so a hit tells you WHY it matters.
 # ---------------------------------------------------------------------------
+# Lines that are exempt wherever they appear, each for a stated reason. Kept
+# deliberately narrow: this is the mechanism most likely to be widened until the
+# scan means nothing, so every entry names what it permits and why.
+allowed_line() {  # $1 = the matched line
+  case "$1" in
+    # riprap's own repository address. The owner's handle is part of the URL
+    # people clone and browse — it is the project's public identity, not a leak.
+    # Only this exact repo path is exempt; the handle anywhere else still fails.
+    *github.com/owahab/riprap*|*github.com:owahab/riprap*) return 0 ;;
+  esac
+  return 1
+}
+
 scan() {  # $1=label  $2=extended-regex
   local label="$1" re="$2" hits f
   hits=$(grep -rniE -- "$re" "${PATHS[@]}" 2>/dev/null || true)
@@ -109,6 +122,7 @@ scan() {  # $1=label  $2=extended-regex
     [ -n "$line" ] || continue
     f=${line%%:*}
     allowed "$f" && continue
+    allowed_line "$line" && continue
     report "$label" "$line"
   done <<< "$hits"
 }

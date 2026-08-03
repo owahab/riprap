@@ -22,11 +22,13 @@ EXAMPLE_FORBIDDEN_PATTERNS=(
 
 # Exact repo-relative paths that legitimately contain the pattern — typically
 # the file that IMPLEMENTS the sanctioned replacement.
+# shellcheck disable=SC2034  # read by name via hook_path_allowed (bash 3.2 has no namerefs)
 EXAMPLE_ALLOWED_PATHS=(
   # 'src/lib/query-builder.ts'
 )
 
 # Path prefixes always skipped: vendored code, generated output, fixtures.
+# shellcheck disable=SC2034  # read by name via hook_path_allowed
 EXAMPLE_ALLOWED_PREFIXES=(
   # 'vendor/'
   # 'test/fixtures/'

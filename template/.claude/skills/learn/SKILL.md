@@ -22,6 +22,19 @@ Review the current session and update CLAUDE.md with any new learnings, patterns
    - Group related information logically
    - Avoid duplicating existing content
 
+5. **Suggest permission additions**: for each tool + argument pattern the user approved
+   **2 or more times** this session, propose a rule for `permissions.allow` in
+   `.claude/settings.json`:
+   - Suggest the **narrowest** rule that covers the actual usage — `Bash(npm test:*)`,
+     not `Bash`; `Edit(src/**)`, not `Edit(**)`. A broad rule granted once to save a
+     prompt is a permission you keep forever without noticing.
+   - **Ask before editing** `settings.json`. Never merge a permission silently — the
+     whole point of the prompt was that someone decided.
+   - **Merge** into the existing array, never replace it.
+   - **Never** suggest destructive or open-ended patterns: `Bash(rm:*)`,
+     `Bash(git push --force:*)`, unconditional `Bash`, `Write(**)`.
+   - Skip this step entirely if nothing was approved twice.
+
 ## Guidelines
 
 - Only add information that would genuinely help future Claude sessions

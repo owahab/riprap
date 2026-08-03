@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # riprap's own guardrails have to hold for riprap. If the hooks it ships are
+  # broken, everything downstream inherits that.
+  guardrails:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shellcheck
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y shellcheck
+          shellcheck -S warning $(find bin template/bin -type f \
+            \( -name '*.sh' -o -perm -u+x \) ! -path '*/.git/*' | sort -u)
+
+      - name: Hook tests
+        run: for t in template/bin/hooks/tests/test-*.sh; do bash "$t"; done
+
+      - name: Manifest matches the tree
+        run: bin/build-manifest --check
+
+      - name: Nothing publishable leaks
+        run: bin/scrub-check template/ docs/
+
+      # .claude/ is prose; bin/ is executables. One find keeps it true.
+      - name: Prose and scripts stay apart
+        run: |
+          found=$(find template/.claude -type f ! -name '*.md' ! -name 'settings.json')
+          if [ -n "$found" ]; then echo "non-markdown in .claude/:"; echo "$found"; exit 1; fi
+
+      - name: settings.json is valid JSON
+        run: jq -e . template/.claude/settings.json > /dev/null
+
+  # Proves the thing riprap actually promises: that installing it works.
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install into a fresh repo and verify
+        run: |
+          mkdir -p /tmp/target && cd /tmp/target
+          git init -q && git config user.email ci@example.com && git config user.name CI
+          echo "# target" > README.md && git add -A && git commit -qm init
+          cd "$GITHUB_WORKSPACE"
+          bin/riprap install /tmp/target
+          cd /tmp/target
+          bin/setup
+          test "$(git config core.hooksPath)" = "bin/hooks/git"
+          bin/verify-hook-wiring
+          bin/verify-stubs
+          for t in bin/hooks/tests/test-*.sh; do bash "$t"; done
+          # A fresh install must be committable — its own fixtures must not trip
+          # the secret hook.
+          git add -A && git commit -qm "install riprap"

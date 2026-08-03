@@ -9,6 +9,7 @@
 set -uo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck disable=SC2034  # consumed by check() in test-support.sh
 HOOK="$SCRIPT_DIR/../claude/block-destructive-outside-cwd.sh"
 # shellcheck source=./test-support.sh
 source "$SCRIPT_DIR/test-support.sh"

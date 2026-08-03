@@ -12,6 +12,7 @@
 # error, or every edit to an unrelated file starts failing.
 set -euo pipefail
 
+# shellcheck disable=SC2034  # used by the dispatch table below, which is commented
 FILE="${1:?usage: bin/format <file>}"
 
 # riprap:stub

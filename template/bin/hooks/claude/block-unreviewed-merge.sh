@@ -48,7 +48,7 @@ refuse() {
     echo "  3. Request their review and apply your 'manual review' label."
     echo "  4. Stop. Do not merge."
     echo ""
-    echo "If the review found an actual unfixed bug, do NOT hold — send it back to"
+    echo "If the review found an actual unresolved bug, do NOT hold — send it back to"
     echo "the author instead. A PR that is both 'held for approval' and 'known"
     echo "broken' conflates two different things."
     echo ""

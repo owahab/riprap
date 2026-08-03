@@ -1,170 +1,190 @@
-# claude-code-starter
+# riprap
 
-A starter scaffold for software projects built with [Claude Code](https://claude.com/claude-code).
+Guardrails, conventions, and enforcement for projects built with
+[Claude Code](https://claude.com/claude-code).
 
-Clone it and you begin with a tuned Claude Code setup already in place: behavioral guidelines that
-push Claude toward planning and verification instead of guessing, two workflow skills, a convention
-for capturing corrections so the same mistake doesn't recur, and a working-directory layout that
-keeps session scratch out of your commits.
+> **Every rule in riprap was earned in production.**
+>
+> This is the distilled output of ≈6 months of continuous, daily agent-assisted
+> development on a live codebase — 53 instruction documents (≈10,800 lines), 12
+> enforcement hooks, 20 skills, and 16 agent roles, all of it running against real code
+> with real consequences.
+>
+> Nothing here was written because it sounded like good practice. Every rule is here
+> because something broke first, and the incident that caused it is recorded next to it.
 
-It is deliberately language- and framework-agnostic. There is no build system, no dependencies, and
-nothing to install — just structure.
-
----
-
-## Quick start
-
-**New project** — click **[Use this template](https://github.com/owahab/claude-code-starter/generate)**
-on GitHub to get your own repo with a clean history. Or clone and reset it yourself:
-
-```bash
-git clone git@github.com:owahab/claude-code-starter.git my-project
-cd my-project
-rm -rf .git && git init
-```
-
-**Existing project** — copy the scaffold in:
-
-```bash
-cp -r /path/to/claude-code-starter/{CLAUDE.md,.claude,docs,tmp} .
-cat /path/to/claude-code-starter/.gitignore >> .gitignore
-```
-
-Then edit [CLAUDE.md](CLAUDE.md) to describe *your* project — build commands, architecture, house
-style. The behavioral rules it ships with are a starting point, not scripture.
+Riprap is deliberately not a framework starter, a deploy pipeline, or an issue-tracker
+integration. It assumes nothing about your stack beyond four scripts in `bin/`.
 
 ---
 
-## What's inside
+## Every rule here has an incident behind it
+
+This is what separates riprap from a list of things that sound sensible:
+
+- **A secret scanner**, written after an API key matched a broad `grep`, landed in a tool
+  result, and entered the conversation. The key had to be rotated — tool output cannot be
+  un-sent. That is why the control sits at the *read*, not at some later filtering step.
+- **A destructive-command blocker**, hardened across **five separate sandbox escapes** — a
+  quoted path containing a space, an escaped quote that opened a fake quoted run, a
+  dash-leading operand after `--`, and two more. Each is now a named regression test, and
+  each is paired with a must-not-false-block control.
+- **"Never source a side-effecting script against live state"**, written after a bug repro
+  fired seven real writes against a live system and corrupted an unrelated record. Nothing
+  was permanently lost, but only because a later write happened to overwrite the damage.
+  That was luck, not a control.
+- **A merge gate**, added after a self-reviewed PR touching a security hook came within one
+  step of merging with a genuine regression in it.
+- **A one-shot-consume warning on handover files**, written after a session destroyed its
+  own state by "verifying" a write it had just made — the read printed the file *and
+  deleted it*. A verification step that consumes the thing it verifies is not a
+  verification step.
+
+---
+
+## Install
+
+```bash
+git clone git@github.com:owahab/riprap.git ~/Projects/riprap
+ln -s ~/Projects/riprap/bin/riprap /usr/local/bin/riprap   # optional
+
+riprap install ~/Projects/my-app
+cd ~/Projects/my-app && bin/setup
+```
+
+Your project is **not** a fork of riprap. It receives a copy plus a manifest, and keeps
+its own history and remote. Then:
+
+```bash
+riprap update ~/Projects/my-app                # pull improvements, keeping your edits
+riprap contribute ~/Projects/my-app <path>     # send one back upstream
+```
+
+### What update will and will not touch
+
+Every installed file is one of two tiers, recorded in `.riprap-manifest.json`:
+
+| Tier | Behaviour |
+|---|---|
+| `template` | Owned upstream. `update` refreshes it — **unless you changed it**, in which case it reports the conflict and leaves your version alone. |
+| `seed` | Yours from the moment it lands: `CLAUDE.md`, `.claude/settings.json`, and the four `bin/` stubs. Never overwritten. |
+
+The manifest records the hash of what riprap last wrote, which is what lets `update` tell
+your work from ours rather than guessing.
+
+---
+
+## What you get
 
 ```
-CLAUDE.md                       Behavioral guidelines Claude loads every session
+CLAUDE.md                      loaded every session; a router, not a rulebook
 .claude/
-  settings.json                 Permission allowlist (pre-approved tool calls)
-  instructions/                 Topic-specific rules, linked from CLAUDE.md
-    handovers.md                Where session handover docs belong
-  skills/
-    learn/                      /learn  — capture session learnings
-    spec/                       /spec   — structured feature interview
-docs/                           Durable, checked-in project documentation
-tmp/                            Session scratch — git-ignored
-  tasks/                        Plans with checkable items, one file per topic
-  handover/                     Session handoff notes
-.gitignore                      Keeps tmp/ contents and .DS_Store out of commits
-LICENSE                         MIT
+  settings.json                permissions + hook wiring
+  instructions/                14 docs, indexed by task
+  skills/                      /learn  /spec  /council  /branch-cleaner
+bin/
+  test lint format setup       ← the only stack-specific files. You fill these in.
+  verify-stubs                 what still needs configuring
+  verify-hook-wiring           catches a hook that exists but is not wired
+  hooks/
+    claude/                    PreToolUse / PostToolUse — exit 2 blocks a tool call
+    git/                       pre-commit, pre-push — exit 1 rejects a commit
+    lib/                       pattern libraries, shared by BOTH families
+    tests/                     71 assertions, runnable in your own repo
+docs/ tmp/                     durable docs; git-ignored session scratch
 ```
 
-Each `tmp/` directory keeps a `.gitignore` that ignores everything but itself, so the layout
-survives a clone while nothing you write there is ever committed.
+### The stack seam
+
+Four executable stubs are the only files that know what language you write in:
+
+| Stub | Contract | Called by |
+|---|---|---|
+| `bin/test` | run the suite | pre-push, CI |
+| `bin/lint` | lint the repo, or the given paths | pre-commit, CI |
+| `bin/format` | format one file | format-on-write hook |
+| `bin/setup` | install hooks and dependencies | you, once |
+
+Hooks and CI call these and nothing else, so **local checks and CI cannot drift apart** —
+there is one definition of "run the tests". Each stub ships with examples for common
+ecosystems and a `# riprap:stub` marker to delete. Until you do, they degrade to a notice
+rather than an error.
+
+### The guardrail architecture
+
+A convention that lives only in a document is a suggestion. Riprap's rules have four
+layers: the document, a pre-commit check, a PreToolUse hook, and **one shared pattern
+library sourced by both hooks**.
+
+That fourth layer is the one people skip and the one that matters. With two copies of a
+regex set they drift, and the day they drift is the day one of them silently stops
+enforcing what you believe is enforced.
+
+`bin/hooks/claude/lint-example.sh` and `bin/hooks/lib/example-patterns.sh` are a working
+skeleton to copy; `.claude/instructions/guardrail-template.md` is the document shape.
 
 ---
 
-## Behavioral guidelines
+## Behavioral rules
 
-[CLAUDE.md](CLAUDE.md) is loaded into context at the start of every session. It sets six rules:
+`CLAUDE.md` ships six, loaded every session:
 
 | Rule | What it does |
-|------|--------------|
-| **Plan mode default** | Plan before any task of 3+ steps or with architectural stakes. If work goes sideways, stop and re-plan rather than pushing through. |
-| **Subagent strategy** | Offload research, exploration, and parallel analysis to subagents — one task each — to keep the main context clean. |
-| **Self-improvement loop** | After any correction, write the lesson into `.claude/instructions/` so it survives past the session. |
-| **Verification before done** | Never call a task complete without evidence: tests run, logs checked, behavior diffed. |
-| **Demand elegance** | On non-trivial changes, pause and ask whether there's a cleaner approach. Skipped for obvious fixes. |
-| **Autonomous bug fixing** | Given a bug report, fix it — no hand-holding round-trips. |
+|---|---|
+| **Plan first** | Plan before any 3+ step or architectural task. If work goes sideways, stop and re-plan rather than pushing through. |
+| **Use subagents** | Offload research and parallel analysis, one task each, to keep the main context clean. |
+| **Capture corrections** | After any correction, write the lesson into `.claude/instructions/` so it outlives the session. |
+| **Verify before done** | Never claim complete without evidence. If tests fail, say so and show the output. |
+| **Prefer the simpler solution** | On non-trivial changes, pause and ask whether there is a cleaner approach. |
+| **Fix bugs autonomously** | Given a failing test or a red CI run, diagnose and fix it without a round trip. |
 
-Two core principles sit underneath: **simplicity first** (smallest change that solves it) and
-**no laziness** (root causes, not band-aids).
-
-Read [CLAUDE.md](CLAUDE.md) for the full text. Keep it small — push detail into
-`.claude/instructions/` and link to it from there.
-
----
-
-## Bundled skills
-
-Both live in [.claude/skills/](.claude/skills/) and are available as slash commands in any session
-opened from this repo.
-
-### `/learn`
-
-Reviews the session and writes what was learned into `CLAUDE.md` or `.claude/instructions/` — new
-conventions, pitfalls, and permission prompts you approved repeatedly. Run it after a session where
-you corrected Claude, so the correction sticks. It proposes; you decide.
-
-See [learn/SKILL.md](.claude/skills/learn/SKILL.md).
-
-### `/spec`
-
-A planning-only stakeholder interview for defining a feature. Runs five phases — Vision, Users,
-Scope, Integration, Constraints — and challenges the request at two checkpoints against redundancy,
-value, complexity, integration fit, and how competitors handle it. Produces a feature document with
-phased acceptance criteria, plus optional UI mockups. Writes no source code.
-
-It also handles acceptance testing once every task under a feature is resolved.
-
-See [spec/SKILL.md](.claude/skills/spec/SKILL.md).
+Plus three restated in full because they cost the most when forgotten: never weaken code
+to make a test pass; always stress-test a plan before presenting it; never merge a
+security-sensitive change autonomously.
 
 ---
 
 ## Conventions
 
-**Where things go.** `docs/` is for durable documentation that belongs in the repo — plans,
-contracts, runbooks. `tmp/` is session scratch and is git-ignored; nothing in it should be treated
-as project documentation.
+- **`docs/`** is durable, checked-in documentation. **`tmp/`** is session scratch and is
+  git-ignored — nothing in it is project documentation.
+- Plans go in `tmp/tasks/<topic>.md` as checkable items, with a review section when the
+  work lands.
+- Session handovers go in `tmp/handover/`, named `handover-<YYYY-MM-DD>-<topic>.md`.
+- Reference files by path relative to the repo root, never absolutely.
 
-**Task tracking.** Plans go in `tmp/tasks/<topic>.md` as checkable items. Mark them off as you go,
-and append a review section when the work lands.
+---
 
-**Handovers.** Session handoff notes go in `tmp/handover/`, named
-`handover-<YYYY-MM-DD>-<topic>.md` — never in `docs/` or the repo root. When resuming, read from
-there. See [handovers.md](.claude/instructions/handovers.md).
+## Honest limits
 
-**Capturing corrections.** When you correct Claude, the fix belongs in
-`.claude/instructions/<topic>.md` as a rule that prevents the mistake next time. `/learn` automates
-this. `handovers.md` is the seed example of the pattern.
-
-**Permissions.** [.claude/settings.json](.claude/settings.json) pre-approves tool calls so routine
-work doesn't stop for a prompt. Add your own project's safe commands there.
+- These are one codebase's conclusions. They are a floor to extend, not a ceiling.
+- Several encode trade-offs another team would reasonably resolve the other way. The merge
+  gate in particular is deliberately conservative and will occasionally annoy you.
+- The permission deny-list in `settings.json` stops **mistakes**, not a determined bypass.
+  Prefix matching cannot do more than that, and the file says so out loud. The hooks are
+  the real enforcement.
+- `bin/format` runs on every write. If your formatter is slow, you will feel it.
 
 ---
 
 ## Recommended tools
 
-All three are **optional** and configured in your user-level `~/.claude/` directory, not in this
-repo — cloning the starter does not install them. The only thing this repo contributes is the
-`Bash(rtk *)` allowlist in [.claude/settings.json](.claude/settings.json).
+All optional, all configured in your user-level `~/.claude/`, not by this repo.
 
-### Superpowers
-
-<https://claude.com/plugins/superpowers>
-
-A large library of process skills — brainstorming, systematic debugging, test-driven development,
-writing plans, verification before completion — that pair naturally with the behavioral rules above.
+**[Superpowers](https://claude.com/plugins/superpowers)** — process skills (brainstorming,
+systematic debugging, TDD, writing plans, verification) that pair naturally with the rules
+above.
 
 ```
 /plugin marketplace add anthropics/claude-plugins-official
 /plugin install superpowers@claude-plugins-official
 ```
 
-### RTK
+**[RTK](https://github.com/rtk-ai/rtk)** — a token-optimized CLI proxy that wraps noisy dev
+commands and filters their output. `settings.json` allowlists `Bash(rtk *)`.
 
-<https://github.com/rtk-ai/rtk>
-
-A token-optimized CLI proxy. Wraps common dev commands (`git status`, builds, test runs) and filters
-their output, cutting token use substantially on noisy operations. `rtk gain` reports what you saved.
-
-Install the binary, then wire it up with a `PreToolUse` hook on `Bash` in `~/.claude/settings.json`
-so commands are rewritten transparently. This repo allowlists `Bash(rtk *)` so the rewritten calls
-don't prompt.
-
-### Peon Ping
-
-<https://www.peonping.com/>
-
-Character-voice audio notifications for long-running sessions — you hear when Claude needs you
-instead of watching the terminal. Runs as a user-level hook; wiring it to `PermissionRequest` means
-it fires the moment Claude is waiting on your input. Ships skills for toggling, volume, and
-voice-pack selection.
+**[Peon Ping](https://www.peonping.com/)** — character-voice audio notifications, so you
+hear when Claude needs you instead of watching the terminal.
 
 ---
 

@@ -7,6 +7,7 @@
 set -uo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck disable=SC2034  # consumed by check() in test-support.sh
 HOOK="$SCRIPT_DIR/../claude/block-unreviewed-merge.sh"
 # shellcheck source=./test-support.sh
 source "$SCRIPT_DIR/test-support.sh"
@@ -74,6 +75,6 @@ echo "--- The refusal has to be actionable ---"
 with_files "bin/hooks/claude/lint-secrets.sh"
 check_contains "names the gated file" "lint-secrets.sh" "$MERGE"
 check_contains "explains the hold procedure" "hold comment" "$MERGE"
-check_contains "warns against holding a broken PR" "unfixed bug" "$MERGE"
+check_contains "warns against holding a broken PR" "unresolved bug" "$MERGE"
 
 summary

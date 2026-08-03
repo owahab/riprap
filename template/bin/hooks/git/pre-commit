@@ -15,19 +15,23 @@ cd "$REPO_ROOT"
 # --- 1. Lint and re-stage --------------------------------------------------
 # --diff-filter=ACM skips deletions: there is nothing to lint in a file that is
 # going away, and passing one to a linter is just an error.
-STAGED=$(git diff --cached --name-only --diff-filter=ACM || true)
+#
+# Read into an array with -z (NUL-delimited) rather than splitting a string.
+# Filenames with spaces are rare, and a hook that mangles them is the kind of
+# bug that surfaces once, confusingly, long after anyone remembers this code.
+STAGED=()
+while IFS= read -r -d '' f; do
+  STAGED+=("$f")
+done < <(git diff --cached --name-only --diff-filter=ACM -z || true)
 
-if [ -n "$STAGED" ] && [ -x bin/lint ] && ! grep -q '^# riprap:stub$' bin/lint 2>/dev/null; then
-  # Quote the expansion: filenames with spaces are rare and breaking on them is
-  # the kind of bug that shows up once, confusingly, months from now.
-  # shellcheck disable=SC2086
-  if ! bin/lint $(printf '%q ' $STAGED); then
+if [ ${#STAGED[@]} -gt 0 ] && [ -x bin/lint ] && ! grep -q '^# riprap:stub$' bin/lint 2>/dev/null; then
+  if ! bin/lint "${STAGED[@]}"; then
     echo "❌ bin/lint failed. Fix the issues, or commit with --no-verify to skip." >&2
     exit 1
   fi
   # Re-stage whatever the linter fixed, so the commit contains the fixed form.
-  printf '%s\n' "$STAGED" | while IFS= read -r f; do
-    [ -n "$f" ] && [ -f "$f" ] && git add -- "$f"
+  for f in "${STAGED[@]}"; do
+    [ -f "$f" ] && git add -- "$f"
   done
   echo "✅ lint passed"
 fi
@@ -50,7 +54,7 @@ fi
 FAILED=0
 
 # -- secret hygiene: file-level --
-for f in $STAGED; do
+for f in "${STAGED[@]}"; do
   if secret_env_file_path "$f"; then
     echo "❌ Refusing to commit a secret-bearing file: $f" >&2
     echo "   Add it to .gitignore. Commit a .example instead." >&2
@@ -78,7 +82,7 @@ fi
 
 # -- your rules go here --
 # . "$REPO_ROOT/bin/hooks/lib/example-patterns.sh"
-# for f in $STAGED; do
+# for f in "${STAGED[@]}"; do
 #   example_relevant_extension "$f" || continue
 #   example_path_allowed "$f" && continue
 #   [ -f "$f" ] || continue

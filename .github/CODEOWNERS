@@ -1,0 +1,40 @@
+# Paths that need the owner's eyes before merging.
+#
+# This is the platform-side half of the merge gate. bin/hooks/claude/block-unreviewed-merge.sh
+# refuses to merge these; CODEOWNERS makes the forge request a review the moment a
+# matching PR opens, so the gate holds even if no agent is involved.
+#
+# GOTCHA — CODEOWNERS uses gitignore-style matching, which tests a pattern against a
+# single path segment unless the pattern is directory-anchored. `**/*billing*` matches a
+# FILE with billing in its name, but NOT a file that merely lives inside a directory
+# called billing (src/billing/handler.ts). Every keyword therefore needs both a filename
+# glob and a `/**` directory glob. Getting this wrong makes the gate look configured
+# while covering half of what you think it covers.
+
+# TODO: replace @OWNER with the handle that must approve these changes.
+
+# The guardrail machinery itself — a change here can disable everything else.
+/bin/hooks/**            @OWNER
+/.claude/settings.json   @OWNER
+/.github/workflows/**    @OWNER
+/.github/CODEOWNERS      @OWNER
+
+# Dependencies: the classic supply-chain vector.
+package.json             @OWNER
+package-lock.json        @OWNER
+requirements.txt         @OWNER
+Gemfile.lock             @OWNER
+go.sum                   @OWNER
+Cargo.lock               @OWNER
+
+# Money, identity, access.
+**/*auth*                @OWNER
+**/*auth*/**             @OWNER
+**/*session*             @OWNER
+**/*session*/**          @OWNER
+**/*token*               @OWNER
+**/*token*/**            @OWNER
+**/*payment*             @OWNER
+**/*payment*/**          @OWNER
+**/*billing*             @OWNER
+**/*billing*/**          @OWNER
