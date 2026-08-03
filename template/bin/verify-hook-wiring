@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# verify-hook-wiring — every hook script must actually be wired up.
+#
+# This exists because of a specific failure: a lint hook and its pattern library
+# were written, reviewed, and merged — and silently never referenced from
+# settings.json. It looked enforced for months and was not. A hook nobody calls
+# is worse than no hook, because you stop thinking about the thing it covers.
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+
+SETTINGS=".claude/settings.json"
+HOOK_DIR="bin/hooks/claude"
+FAILED=0
+
+[ -f "$SETTINGS" ] || { echo "no $SETTINGS — nothing to verify"; exit 0; }
+
+for f in "$HOOK_DIR"/*.sh; do
+  [ -f "$f" ] || continue
+  name=$(basename "$f")
+  # The shipped template is inert by design and is not expected to be wired.
+  [ "$name" = "lint-example.sh" ] && continue
+  if ! grep -q "$name" "$SETTINGS"; then
+    echo "❌ $f exists but is not referenced in $SETTINGS" >&2
+    FAILED=1
+  fi
+done
+
+# And the reverse: settings must not point at a hook that isn't there.
+grep -oE '[a-z0-9-]+\.sh' "$SETTINGS" 2>/dev/null | sort -u | while IFS= read -r ref; do
+  [ -f "$HOOK_DIR/$ref" ] || {
+    echo "❌ $SETTINGS references $ref, which does not exist in $HOOK_DIR" >&2
+    exit 1
+  }
+done || FAILED=1
+
+if [ "$FAILED" -ne 0 ]; then
+  echo "" >&2
+  echo "Either wire the hook into $SETTINGS, or delete it. Do not leave it." >&2
+  exit 1
+fi
+
+echo "✅ all hooks wired"
+exit 0

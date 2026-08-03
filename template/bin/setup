@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# bin/setup — get a fresh clone ready to work in. Safe to re-run.
+#
+# Installs the git hooks, then whatever your project needs.
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+# Git hooks live in bin/hooks/git and are version-controlled. core.hooksPath
+# points git at them directly — no symlinks into .git/hooks, which is what makes
+# this work in worktrees and survive a fresh clone.
+git config core.hooksPath bin/hooks/git
+chmod +x bin/hooks/git/* 2>/dev/null || true
+echo "✅ git hooks installed (core.hooksPath = bin/hooks/git)"
+
+# TODO: add your project's bootstrap below, then delete the marker line.
+#   npm ci
+#   uv sync
+#   bundle install
+#   go mod download
+
+# riprap:stub
+echo "ℹ️  bin/setup has no project bootstrap yet — edit bin/setup to add one."

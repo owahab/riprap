@@ -1,0 +1,114 @@
+{
+  "//": [
+    "READ THIS BEFORE TRUSTING THE DENY LIST.",
+    "",
+    "deny beats allow, so a broad allow does not defeat the rules below. But every",
+    "deny here is a literal prefix match, and prefix matches are trivially",
+    "sidestepped: `env sudo ...`, `bash -c 'rm -rf ~'`, `/bin/rm -rf ~`, or any",
+    "variable indirection walks straight past them.",
+    "",
+    "So: this list stops MISTAKES, which is the common case and worth stopping. It",
+    "will not stop a determined bypass, and nothing shaped like a string match",
+    "could. The real enforcement is in bin/hooks/claude/ — those analyse the",
+    "command semantically, resolving paths and honouring quoting and POSIX --,",
+    "rather than pattern-matching text. That is why they exist.",
+    "",
+    "Widen `allow` as you learn which commands are routine here. /learn proposes",
+    "narrow rules for anything you approve repeatedly."
+  ],
+
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Edit",
+      "Write",
+      "WebFetch",
+      "WebSearch",
+      "Bash(rtk *)",
+      "Bash(rtk git *)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git branch:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(bin/test:*)",
+      "Bash(bin/lint:*)",
+      "Bash(bin/format:*)",
+      "Bash(bin/setup:*)",
+      "Bash(bin/verify-stubs:*)",
+      "Bash(bin/verify-hook-wiring:*)"
+    ],
+
+    "deny": [
+      "Bash(sudo*)",
+      "Bash(sudo rm *)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf / *)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf ~ *)",
+      "Bash(rm -rf ~/*)",
+      "Bash(rm -rf $HOME)",
+      "Bash(rm -rf $HOME *)",
+      "Bash(rm -rf $HOME/*)",
+      "Bash(pkill*)",
+      "Bash(killall*)",
+      "Bash(kill -9*)",
+      "Bash(lsof -ti*)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/*.pem)",
+      "Read(./**/id_rsa*)",
+      "Read(./**/id_ed25519*)",
+      "Read(./secrets/**)",
+      "Read(./.npmrc)",
+      "Read(./.netrc)",
+      "Read(./.claude/settings.local.json)"
+    ],
+
+    "ask": [
+      "Bash(git push origin main:*)",
+      "Bash(git push --force:*)",
+      "Bash(gh pr merge:*)"
+    ]
+  },
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/bin/hooks/claude/block-destructive-outside-cwd.sh" },
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/bin/hooks/claude/block-unreviewed-merge.sh" }
+        ]
+      },
+      {
+        "matcher": "Bash|Read|Grep|Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/bin/hooks/claude/lint-secrets.sh" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/bin/hooks/claude/format-on-write.sh" }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/bin/hooks/claude/session-end.sh" }
+        ]
+      }
+    ]
+  }
+}

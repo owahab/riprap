@@ -70,4 +70,4 @@
 
 ## CLAUDE.md Structure
 
-Keep CLAUDE.md small, link to instructions in `.claude/instructions/`
+Keep CLAUDE.md small, link to instructions in `.claude/instructions/`# upstream note

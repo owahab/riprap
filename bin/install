@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# riprap install <project> — copy the payload into a project and record what we did.
+#
+# Copying is driven entirely by template/MANIFEST. Nothing is copied because it
+# happens to sit in a directory; every file is named, tiered, and verified to be
+# text first. That is deliberate: a compiled artifact or an editor backup picked
+# up by a recursive copy would carry absolute paths and identifiers straight into
+# someone else's repo, and no text scrubber can see inside one.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=./lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+TARGET="${1:-}"
+[ -n "$TARGET" ] || die "usage: riprap install <project-directory>"
+[ -d "$TARGET" ] || die "no such directory: $TARGET"
+TARGET="$(cd "$TARGET" && pwd)"
+[ "$TARGET" != "$ROOT" ] || die "refusing to install riprap into itself"
+
+require_clean_tree "$TARGET"
+
+MANIFEST="$TARGET/.riprap-manifest.json"
+[ -e "$MANIFEST" ] && die "already installed (found .riprap-manifest.json) — use 'riprap update' instead"
+
+VERSION="$(riprap_version "$ROOT")"
+printf 'Installing riprap %s into %s\n\n' "$VERSION" "$TARGET"
+
+copied=0 skipped=0
+records=""
+add_record() { records="$records$(printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4")"$'\n'; }
+
+while IFS=$'\t' read -r tier path; do
+  [ -n "$path" ] || continue
+  src="$ROOT/template/$path"
+  dst="$TARGET/$path"
+
+  [ -f "$src" ] || die "MANIFEST lists a file that does not exist: template/$path"
+  # Allowlist discipline: text only, no exceptions.
+  if [ -s "$src" ] && ! LC_ALL=C grep -Iq . "$src" 2>/dev/null; then
+    die "refusing to copy non-text file: template/$path"
+  fi
+
+  # seed files are the project's own from the moment they land. If one already
+  # exists we never touch it — an adopter's CLAUDE.md outranks ours always.
+  if [ "$tier" = "seed" ] && [ -e "$dst" ]; then
+    printf '  skip  %-46s (seed, already present — yours wins)\n' "$path"
+    skipped=$((skipped + 1))
+    add_record "$path" "$tier" "$(sha256_of "$dst")" "pre-existing"
+    continue
+  fi
+
+  mkdir -p "$(dirname "$dst")"
+  cp "$src" "$dst"
+  [ -x "$src" ] && chmod +x "$dst"
+  printf '  %-5s %-46s %s\n' "$tier" "$path" \
+    "$( [ "$tier" = seed ] && echo '(yours now — edit freely)' || echo '')"
+  copied=$((copied + 1))
+  add_record "$path" "$tier" "$(sha256_of "$dst")" "installed"
+done < <(manifest_entries "$ROOT")
+
+printf '%s' "$records" | write_manifest "$TARGET" "$VERSION"
+
+printf '\n%d file(s) installed, %d skipped.\n' "$copied" "$skipped"
+cat <<'NEXT'
+
+Next:
+  1. Fill in the stubs — bin/test, bin/lint, bin/format, bin/setup.
+     Each carries examples for common ecosystems and a marker line to delete.
+     Run `bin/verify-stubs` to see what is still unconfigured.
+  2. Install the git hooks:  bin/setup   (sets core.hooksPath to bin/hooks/git)
+  3. Edit CLAUDE.md to describe your project.
+NEXT

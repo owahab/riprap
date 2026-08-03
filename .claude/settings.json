@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(rtk *)",
-      "Bash(rtk git *)",
-      "Edit(/.claude/skills/spec/**)"
-    ]
-  }
-}
