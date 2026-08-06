@@ -13,8 +13,14 @@ Conventions that apply to everything in this repo. Read this first.
 The rule has no other exceptions, which is what makes it enforceable:
 
 ```bash
-find .claude -type f ! -name '*.md' ! -name 'settings.json'   # must print nothing
+git ls-files '.claude/**' | grep -v -e '\.md$' -e '^\.claude/settings\.json$'  # must print nothing
 ```
+
+**Check tracked files, not the directory.** A plain `find` over `.claude/` reports things
+you do not control and are not committing: harness worktrees under `.claude/worktrees/`
+can hold thousands of files, skills vendored from elsewhere bring their own `LICENSE.txt`,
+and Python tooling leaves `__pycache__` behind. An invariant that cannot pass gets
+switched off, and then it protects nothing.
 
 A rule with one documented exception stays true. A rule with a habit of exceptions
 becomes a suggestion.
@@ -142,7 +148,10 @@ worse than no hook, because you stop thinking about what it was meant to cover.
   quoted exactly that way, so a project path containing a space still works.
 - **`set -euo pipefail`**, with one caveat: `pipefail` combined with `grep` inside command
   substitution bites, because `grep` exits non-zero on no matches and takes the script
-  down with it. Either use `set -eu` in scripts that grep, or append `|| true`.
+  down with it. Use `set -eu` in scripts that grep. Reach for `|| true` only where no
+  matches is genuinely an expected, handled outcome — [error-handling.md](error-handling.md)
+  calls a trailing `|| true` "almost always a bug in disguise", and that rule wins here:
+  it discards the exit status of everything in the pipeline, not just the grep.
 - **Parse hook stdin with `jq`**, and read stdin exactly once — it is a stream, and the
   second read gets nothing.
 

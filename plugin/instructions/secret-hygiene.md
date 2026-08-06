@@ -25,6 +25,8 @@ than at some later filtering step. There is no later filtering step.
 - `*.pem`, `id_rsa`, `id_ed25519`
 - `.npmrc`, `.netrc`
 - `secrets/**`, `config/credentials/**`
+- `config/master.key` — listed separately because `config/credentials/**` does not match
+  it, and in a Rails app it is *the* file that decrypts everything else
 - `.claude/settings.local.json`
 
 **Never write a token value into a tracked file.** If one is already committed, removing

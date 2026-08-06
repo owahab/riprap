@@ -7,6 +7,13 @@ When to stop and plan, how to scope a bug fix, and what "done" has to mean.
 Before implementing a change that touches **more than one file** or exceeds **roughly five lines**,
 show the plan and wait for confirmation.
 
+**Unattended runs do not wait.** With nobody to confirm, "wait for confirmation" is a
+deadlock, not a gate. An agent running unattended still writes the plan — into the task,
+the PR body, or the handover — and then proceeds, so the reasoning is reviewable after the
+fact even though it was not reviewable before. Pair this with the same carve-out in
+[interaction-preferences.md](interaction-preferences.md); apply neither when a human is
+present.
+
 The plan needs the files you will touch, what changes in each, and how you will verify it. Keep it
 short — a plan longer than the diff is its own problem.
 

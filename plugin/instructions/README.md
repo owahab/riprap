@@ -115,6 +115,7 @@ files usually beat one 215-line file when either would answer the question.
 **Security**
 
 - Handling a credential, a token, or a key? → [secret-hygiene.md](secret-hygiene.md) (~85)
+- Wondering what the allow/deny lists actually stop? → [permissions.md](permissions.md) (~55)
 
 **Extending the guardrails**
 

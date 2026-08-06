@@ -18,8 +18,13 @@ within the file. What does not vary is the shape of the name.
 | Classes / types | Noun phrase, singular, no prefixes or suffixes for their own sake | `Widget`, `WidgetProcessor`, `RecordStore` |
 | Functions / methods | Verb phrase — say what it does | `build_widget`, `fetch_record`, `retry_item` |
 | Constants | Upper case with separators, scoped to where they are used | `MAX_WIDGET_RETRIES`, `DEFAULT_ITEM_LIMIT` |
-| Booleans | `is_` / `has_` / `can_` prefix, always positive | `is_active`, `has_records`, `can_retry` |
+| Booleans | Follow the ecosystem's convention, always positive | `is_active` / `hasRecords` (JS, Python, Go); `active?` (Ruby); `IsActive` (C#) |
 | Event handlers | `handle_` prefix plus the event | `handle_widget_click`, `handle_item_submit` |
+
+On booleans specifically: an `is_`/`has_`/`can_` prefix is the right answer in most
+languages and the wrong one in Ruby, where the `?` suffix is the convention and
+`is_active` reads as foreign. Match the language you are in — a naming rule imported from
+another ecosystem is noticed by every reviewer and followed by none.
 
 Two rules that matter more than the table:
 

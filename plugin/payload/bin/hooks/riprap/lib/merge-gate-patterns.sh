@@ -57,20 +57,52 @@ MERGE_GATE_MANIFESTS=(
   'composer.json' 'composer.lock'
 )
 
+# Paths this project has decided are NOT gated, as shell globs. Empty by design
+# and opt-in only: riprap ships no exemptions, including for bots.
+#
+# Dependency bots are the tempting thing to put here, because a lockfile is a
+# gated manifest and so every bot PR gets blocked. Resist it. A dependency update
+# is the classic supply-chain vector, and "the machine opened it" is not a reason
+# to trust a diff — an exemption for the one category most worth reviewing is how
+# a gate becomes decorative. If the noise is genuinely not worth it in your repo,
+# that is a decision to make explicitly, here, in your own file.
+#
+# Set this in bin/hooks/lib/merge-gate-patterns.local.sh, which riprap never
+# overwrites.
+MERGE_GATE_ALLOW=(
+  # 'docs/*'
+)
+
+# "auth" as a substring matches "author", and a repo's AUTHORS file or
+# docs/authors.md is not a security change. Strip author-words before keyword
+# matching — but only where "author" is a whole word, so "authorization.rb" and
+# "authorize.py" still match, since those genuinely are.
+_merge_gate_strip_false_friends() {
+  printf '%s' "$1" | sed -E 's/author(s|ed|ing|ship)?([^a-z]|$)/\2/g'
+}
+
 # Echo every gated path from a newline-separated file list on stdin.
 # Returns 0 if any matched, 1 if none did.
 merge_gate_match() {
-  local files="$1" found=1 f pat kw base
+  local files="$1" found=1 f pat kw base lower allow
   while IFS= read -r f; do
     [ -n "$f" ] || continue
     base="${f##*/}"
 
+    for allow in ${MERGE_GATE_ALLOW[@]+"${MERGE_GATE_ALLOW[@]}"}; do
+      # shellcheck disable=SC2254  # glob match is intended
+      case "$f" in $allow) continue 2 ;; esac
+    done
+
     for pat in "${MERGE_GATE_PATTERNS[@]}"; do
       case "$f" in *"$pat"*) echo "$f  (matches $pat)"; found=0; continue 2 ;; esac
     done
+
+    lower=$(_merge_gate_strip_false_friends "$(printf '%s' "$f" | tr '[:upper:]' '[:lower:]')")
     for kw in "${MERGE_GATE_KEYWORDS[@]}"; do
-      case "$f" in *"$kw"*) echo "$f  (matches *$kw*)"; found=0; continue 2 ;; esac
+      case "$lower" in *"$kw"*) echo "$f  (matches *$kw*)"; found=0; continue 2 ;; esac
     done
+
     for pat in "${MERGE_GATE_MANIFESTS[@]}"; do
       [ "$base" = "$pat" ] && { echo "$f  (dependency manifest)"; found=0; continue 2; }
     done

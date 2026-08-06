@@ -75,7 +75,18 @@ for, and list, each of:
 Report what you find as a short list with a recommendation for each. Do not act on any of it
 without asking — every one of these is the user's call, and several are irreversible.
 
-## 5. Close
+## 5. Offer the suggested permissions
+
+If `.claude/settings.json` has no `permissions` block, or a visibly thin one, show
+`"${CLAUDE_PLUGIN_ROOT}"/permissions.suggested.json` and offer to merge the parts they want.
+
+**Print it; do not apply it.** Widening an allowlist is a privilege grant, and riprap's own
+`merge-gates.md` puts `.claude/settings.json` on the list of paths needing a human. Merging
+it silently would break the rule riprap is there to enforce. Point at
+`plugin/instructions/permissions.md` for why the deny list stops mistakes rather than
+adversaries.
+
+## 6. Close
 
 Confirm `bin/riprap verify` exits clean, then state in two or three lines: what landed, what
 is still unresolved, and that re-running `/riprap:install` after a plugin update refreshes

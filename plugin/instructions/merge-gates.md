@@ -17,17 +17,36 @@ So the review stays. The merge decision, for these paths, belongs to a human.
 Enforced by `bin/hooks/riprap/claude/block-unreviewed-merge.sh`, which intercepts `gh pr merge`,
 reads the PR's changed files, and refuses if any match:
 
-- `bin/hooks/**` — the guardrail machinery itself
+- `bin/hooks/**`, `.claude/hooks/**`, `.githooks/**`, `.husky/**`, `lefthook.yml`,
+  `.pre-commit-config.yaml` — the guardrail machinery itself
 - `.claude/settings.json` — permissions and hook wiring
 - `.github/workflows/**`, `.github/CODEOWNERS` — what CI runs and who must approve
 - Filenames containing `auth`, `session`, `token`, `credential`, `permission`, `policy`,
   `payment`, `billing`, `invoice`, `checkout`
 - Any dependency manifest or lockfile
 
-`bin/hooks/**` is on that list deliberately. A change there can disable every other
+The hook machinery is on that list deliberately. A change there can disable every other
 control in the repo, and no test suite reliably catches *"the guardrail stopped
 guarding"*. Tooling changes are exactly the class where a silent failure looks like
-success.
+success. The list covers several projects' hook layouts, not just riprap's, because riprap
+installs alongside whatever a repo already had — so the hooks actually doing the enforcing
+are routinely in a directory riprap did not choose.
+
+**`auth` does not match `author`.** An `AUTHORS` file or `docs/authors.md` is not a
+security change, and a gate that fires on them trains people to wave it through, which
+costs more than the case it catches. `authorization.rb` and `auth/login.ts` still match.
+
+## Exemptions are opt-in, and riprap ships none
+
+`MERGE_GATE_ALLOW` in `bin/hooks/lib/merge-gate-patterns.local.sh` takes globs this project
+has decided are not gated. It is empty by default.
+
+**Dependency bots are the tempting thing to put there.** Every bot PR touches a lockfile,
+every lockfile is a gated manifest, so the gate blocks all of them — and that is genuinely
+noisy. Resist it anyway: a dependency update is the classic supply-chain vector, and *"a
+machine opened it"* is not a reason to trust a diff. Exempting the one category most worth
+reviewing is how a gate becomes decorative. If the noise really is not worth it in your
+repo, make that call explicitly, in your own file, where the next person can see it.
 
 ## The list is a floor, not a ceiling
 

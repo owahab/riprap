@@ -60,10 +60,18 @@ refuse() {
 # Resolve the PR number: explicit argument, else the current branch's PR.
 PR_NUM=$(printf '%s' "$COMMAND" | sed -nE 's/.*gh pr merge[[:space:]]+([0-9]+).*/\1/p' | head -1)
 
-# A test seam: point this at a command that echoes a file list to exercise the
-# gate without a network round trip. Unset in normal operation.
-if [ -n "${MERGE_GATE_FILES_CMD:-}" ]; then
-  FILES=$($MERGE_GATE_FILES_CMD 2>/dev/null) || \
+# A test seam, and one that has to be handled carefully: it substitutes the list
+# of files the gate reasons about, so anything able to set it can make any PR
+# look harmless. It is therefore gated on a second, unambiguously test-only
+# variable, and set WITHOUT that variable it blocks rather than falls through.
+# Falling through would let a half-applied injection attempt proceed quietly,
+# which is the outcome a fail-closed gate exists to prevent.
+if [ -n "${RIPRAP_TEST_PR_FILES:-}" ]; then
+  [ "${RIPRAP_TEST:-}" = "1" ] || \
+    refuse "RIPRAP_TEST_PR_FILES is set but RIPRAP_TEST is not.
+That combination only makes sense inside riprap's own test suite. Refusing to
+evaluate a supplied file list outside it."
+  FILES=$($RIPRAP_TEST_PR_FILES 2>/dev/null) || \
     refuse "Could not determine which files this PR touches (test seam failed)."
 else
   command -v gh >/dev/null 2>&1 || \

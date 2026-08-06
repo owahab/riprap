@@ -41,7 +41,7 @@ jobs:
       - name: Plugin metadata is valid JSON
         run: |
           for f in .claude-plugin/marketplace.json plugin/.claude-plugin/plugin.json \
-                   plugin/hooks/hooks.json; do
+                   plugin/hooks/hooks.json plugin/permissions.suggested.json; do
             jq -e . "$f" > /dev/null || { echo "invalid JSON: $f"; exit 1; }
           done
 

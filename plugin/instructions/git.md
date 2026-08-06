@@ -5,9 +5,14 @@ Branching, committing, and merging rules, plus the failure modes that cost the m
 ## Start every task from an up-to-date trunk
 
 ```bash
-git checkout main && git pull origin main
+git checkout "$TRUNK" && git pull origin "$TRUNK"    # $TRUNK is this repo's default branch
 git checkout -b <short-descriptive-name>
 ```
+
+**Find out what trunk is called before you use it** — `git symbolic-ref --short refs/remotes/origin/HEAD`
+answers it. Plenty of repos use `develop`, `master`, or a release branch. Assuming `main`
+in a repo that uses something else means cutting feature branches off whatever `main`
+happens to be there, which in some layouts is production.
 
 Never branch from another feature branch. A branch cut from a branch carries the parent's commits
 into its own pull request, and the parent's fate becomes yours: if it gets reworked, squashed, or
@@ -42,6 +47,21 @@ it: branch, commit, push, open a PR. Then say that is what you did.
 skip the hooks that run on pull requests, skip required checks, and leave no place to attach the
 review conversation. Recovering from a bad direct push means either a revert commit in trunk's
 history or a force-push that rewrites history other people have already pulled.
+
+## If you must force-push, use `--force-with-lease`
+
+```bash
+git push --force-with-lease origin <branch>     # never plain --force
+```
+
+`--force-with-lease` refuses when the remote has moved since you last fetched, so it
+cannot silently discard a commit someone else pushed to your branch while you were
+rebasing. Plain `--force` will discard it without a word. The two are one word apart and
+one of them is unrecoverable without the reflog of whoever lost the work.
+
+Note that a permissions rule matching `git push --force` by prefix gates the safe form too,
+since `--force-with-lease` starts with `--force`. That is the right way round — being asked
+about the safe one costs a keystroke; the reverse costs a branch.
 
 ## Merge through the forge, never locally
 

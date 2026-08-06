@@ -17,11 +17,29 @@ FILE=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // .tool_response.fil
 [ -n "$FILE" ] || exit 0
 [ -f "$FILE" ] || exit 0
 
-FORMAT="${CLAUDE_PROJECT_DIR:-$(pwd)}/bin/format"
+PROJECT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+FORMAT="$PROJECT/bin/format"
 [ -x "$FORMAT" ] || exit 0
 grep -q '^# riprap:stub$' "$FORMAT" 2>/dev/null && exit 0   # not configured yet
 
-# exec so the formatter's own exit code becomes the hook's, and so a formatter
-# that decides a file is out of scope reports that rather than being second
-# guessed here.
-exec "$FORMAT" "$FILE"
+# Only format files inside the project. A session that writes to /tmp, to a
+# sibling checkout, or to somewhere under $HOME should not have this project's
+# formatter reach out and rewrite it.
+case "$(cd "$(dirname "$FILE")" 2>/dev/null && pwd)/" in
+  "$PROJECT"/*|"$PROJECT"/) ;;
+  *) exit 0 ;;
+esac
+
+# Run it, never exec it. exec would make the formatter's exit code the hook's,
+# and a formatter exiting non-zero on a file that is mid-edit — half-written
+# syntax, an unclosed brace — is the normal case, not an exceptional one. As the
+# hook's own status that becomes an error on the tool call, on most edits, for a
+# condition the next keystroke fixes. Formatting is a convenience; it never gets
+# a vote on whether the write succeeded.
+if ! "$FORMAT" "$FILE" >/dev/null 2>&1; then
+  # Deliberately quiet, and deliberately not exit 2. If bin/format is genuinely
+  # broken rather than looking at half-written source, `bin/lint` in pre-commit
+  # is where that surfaces, at a moment when someone can act on it.
+  exit 0
+fi
+exit 0

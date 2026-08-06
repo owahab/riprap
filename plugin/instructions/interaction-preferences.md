@@ -66,8 +66,14 @@ is not a review surface.
 ## Always stress-test a plan before presenting it
 
 **Before exiting plan mode, dispatch at least five critic sub-agents in parallel, each
-from a distinct angle.** This is unconditional. There is no exemption for plans that look
-small.
+from a distinct angle.** There is no exemption for plans that look small.
+
+**One carve-out, and only one: an unattended run.** Plan mode's whole purpose is to give a
+human a review surface, so an agent running with nobody watching — a scheduled job, a
+queue worker, a fleet member picking up a ticket — has no surface to present to and
+nothing to wait for. It should still stress-test, but it then proceeds on its own findings
+and records them alongside the work rather than blocking on approval that will never
+come. Blocking there does not buy review; it buys a stalled job.
 
 **Why there is no exemption:** a plan's own author is the worst available judge of whether
 it is trivial. "Trivial" is exactly the verdict a plan returns about itself once it feels
