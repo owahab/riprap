@@ -63,12 +63,29 @@ bin/
   hooks/
     git/                    pre-commit, pre-push — yours, delegating to riprap's
     riprap/                 riprap's own, refreshed on every install
+      LICENSE               riprap's licence, carried with the files it covers
 ```
 
 | Tier | What | On re-install |
 |---|---|---|
 | namespaced | `bin/hooks/riprap/**`, `bin/riprap` | Replaced wholesale; files riprap stops shipping are removed |
 | seed | `bin/hooks/git/*`, `bin/{test,lint,format,setup}` | Written once if absent, never replaced |
+
+### Before you install: the licence lands in your repo too
+
+riprap is **source-available** under PolyForm Perimeter 1.0.1, not an OSI open source licence. Two
+consequences worth knowing before the files are in your git history rather than after:
+
+- **`bin/hooks/riprap/LICENSE` is written into your repository**, because the licence requires its
+  terms and notice to travel with the files they cover. It is namespaced, so it will never
+  overwrite your project's own root `LICENSE`.
+- **Automated licence scanners will flag it.** PolyForm has no SPDX identifier, so FOSSA, Snyk, and
+  Black Duck classify it as unknown or custom. If your organisation denies uncategorised licences
+  by default, this will raise a policy conflict. Clear it with whoever owns that policy first.
+
+What the licence actually asks of you as an adopter is narrow: use riprap for anything, including
+commercially and on your employer's code; just don't provide to others a product that competes with
+riprap. Building your own software with it is not competing with it.
 
 **Your `CLAUDE.md` and `.claude/settings.json` are never touched.** The documents reach the
 model through a SessionStart hook and the skills are namespaced by the harness as

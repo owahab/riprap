@@ -1,7 +1,6 @@
 ---
 name: branch-cleaner
 description: Prune merged and stale Git branches and triage pull requests that have gone quiet, keeping the repository tidy. Use when the user runs /riprap:branch-cleaner or asks to prune, delete, clean up, or tidy old branches or stale PRs.
-license: MIT
 ---
 
 # Branch Cleaner

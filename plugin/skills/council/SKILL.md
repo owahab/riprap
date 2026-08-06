@@ -6,7 +6,6 @@ description: >
   or wants a rigorously critiqued, well-researched plan on any topic (product, technical
   architecture, business strategy, personal decisions). Runs intake → clarification → parallel
   research agents → draft → parallel critic agents → refined final plan via Plan Mode.
-license: MIT
 ---
 
 # Council — Strategic Planning

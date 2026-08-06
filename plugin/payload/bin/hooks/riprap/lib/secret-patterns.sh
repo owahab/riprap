@@ -14,8 +14,11 @@
 # SIGNATURES, not integrations. They do not indicate which services this project
 # uses — they catch a leaked credential from any of them, in any repo. Removing
 # one because "we don't use that service" removes the ability to catch its
-# tokens when a dependency, a teammate, or a pasted snippet brings one in. This
-# is the same list gitleaks and trufflehog publish. Leave it alone.
+# tokens when a dependency, a teammate, or a pasted snippet brings one in. Each
+# prefix was written from the issuing vendor's own published credential format,
+# not copied from another scanner, so nothing here carries a third party's
+# licence. Other tools converge on the same prefixes because the vendors define
+# them, not because anyone copied anyone. Leave it alone.
 # ---------------------------------------------------------------------------
 
 # Prefixed vendor tokens only. Deliberately no generic PASSWORD=/SECRET=

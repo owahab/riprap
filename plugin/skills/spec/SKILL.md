@@ -1,7 +1,6 @@
 ---
 name: spec
 description: Interactive feature definition with stakeholder interviews, UI mockups, and structured planning documentation. Use when the user runs /riprap:spec, asks to define a new feature, scope out new work, start a feature interview, or run acceptance testing on a completed feature. Runs a 5-phase structured interview, challenges requests for value/redundancy/complexity, develops reviewable mockups, and breaks work into phased tasks. Also handles feature acceptance testing when all tasks under a feature are marked Resolved.
-license: MIT
 ---
 
 # Spec — Interactive Feature Definition

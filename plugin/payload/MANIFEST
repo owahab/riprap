@@ -24,6 +24,7 @@
 seed	bin/format
 seed	bin/hooks/git/pre-commit
 seed	bin/hooks/git/pre-push
+namespaced	bin/hooks/riprap/LICENSE
 namespaced	bin/hooks/riprap/claude/block-destructive-outside-cwd.sh
 namespaced	bin/hooks/riprap/claude/block-unreviewed-merge.sh
 namespaced	bin/hooks/riprap/claude/format-on-write.sh

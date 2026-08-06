@@ -29,7 +29,21 @@ jobs:
         run: bin/build-manifest --check
 
       - name: Nothing publishable leaks
-        run: bin/scrub-check plugin/ docs/ README.md
+        run: |
+          bin/scrub-check plugin/ docs/ README.md \
+            CONTRIBUTING.md TRADEMARK.md CLA.md .github/
+
+      # The licence's Notices clause obliges anyone redistributing riprap to pass
+      # on the `Required Notice:` line, not just the terms. A payload copy that
+      # drifts to the bare licence body silently drops the attribution at the
+      # highest-volume boundary there is — every adopter's repository.
+      - name: Every licence copy is identical, notice included
+        run: |
+          cmp LICENSE plugin/LICENSE
+          cmp LICENSE plugin/payload/bin/hooks/riprap/LICENSE
+          grep -q '^Required Notice:' LICENSE
+          test ! -x plugin/payload/bin/hooks/riprap/LICENSE
+          echo "✅ three identical licence copies, notice present"
 
       # The plugin ships prose and skills; every executable is in the payload,
       # where the project can read it. One find keeps that true.

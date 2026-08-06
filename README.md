@@ -221,4 +221,18 @@ hear when Claude needs you instead of watching the terminal.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+**Source-available** under [PolyForm Perimeter 1.0.1](LICENSE). In plain words:
+
+- **Use it for anything, including at work.** Personal projects, commercial projects, your
+  employer's codebase — all fine. There is no distinction between hobby and paid use here.
+- **Don't provide to others a product that competes with riprap.** You cannot repackage it and
+  sell it, and you cannot publish a competing fork. That includes free ones — see the Competition
+  section of the licence.
+- **Keep the notice.** The `Required Notice:` line in [LICENSE](LICENSE) travels with every copy.
+- **The name is reserved** — see [TRADEMARK.md](TRADEMARK.md). Talking about riprap is free;
+  shipping something else called riprap is not.
+
+This is not an OSI open source licence, and that is a deliberate trade. It keeps riprap open to
+read, use, and contribute to, while keeping it from being sold out from under the work that went
+into it. If you want to improve riprap, the route is a pull request — see
+[CONTRIBUTING.md](CONTRIBUTING.md), which is upfront about what that asks of you.

@@ -56,8 +56,24 @@ Improvements flow back as ordinary pull requests.
 - **A merge gate**, after a self-reviewed PR touching a security hook came within one step
   of merging with a genuine regression in it.
 
+## License
+
+riprap is **source-available** under PolyForm Perimeter 1.0.1, not an OSI open source licence.
+
+Use it for anything, including commercially and at work. What you may not do is provide to others
+a product that competes with riprap — you cannot repackage and sell it, and you cannot publish a
+competing fork, free ones included. Attribution travels with every copy, and the name is reserved.
+
+Installing riprap places a copy of the licence at `bin/hooks/riprap/LICENSE` in your repository. If
+your organisation runs automated licence scanning, that file will be flagged as an unrecognised
+licence, because PolyForm has no SPDX identifier. Worth knowing before you install rather than
+after.
+
 ## Further reading
 
 - [Installing riprap](install.md) — the three commands, and what lands where
 - [Guardrail architecture](guardrails.md) — how a rule is made to hold
+- [Licence](https://github.com/owahab/riprap/blob/main/LICENSE) ·
+  [Trademark policy](https://github.com/owahab/riprap/blob/main/TRADEMARK.md) ·
+  [Contributing](https://github.com/owahab/riprap/blob/main/CONTRIBUTING.md)
 - [Source on GitHub](https://github.com/owahab/riprap)

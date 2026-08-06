@@ -60,15 +60,22 @@ directions. That check exists because a hook once shipped unwired and looked enf
 months.
 
 **Everything published gets scrubbed.** riprap is distilled from a private codebase.
-`bin/scrub-check` gates `plugin/` and `docs/` in CI. If a hit is deliberate, add it to
-`allowed()` or `allowed_line()` **with a stated reason** — an unexplained exemption is
-indistinguishable from an oversight.
+`bin/scrub-check` gates `plugin/`, `docs/`, `.github/`, and the root markdown in CI. If a hit is
+deliberate, add it to `allowed()` or `allowed_line()` **with a stated reason** — an unexplained
+exemption is indistinguishable from an oversight.
+
+Prefer `allowed_line()`. `allowed()` takes a path and exempts that file from **all twelve** scans
+permanently, so one entry meant to permit a name also stops catching home paths, hostnames, and
+incident dates in the same file. `allowed_line()` sees `path:lineno:content` and can be anchored to
+both the path and the exact string being permitted.
 
 ## Before you commit
 
 ```bash
 bin/build-manifest --check                       # manifest matches, namespace holds
-bin/scrub-check plugin/ docs/ README.md          # nothing leaks
+bin/scrub-check plugin/ docs/ README.md CONTRIBUTING.md TRADEMARK.md CLA.md .github/
+cmp LICENSE plugin/LICENSE && \
+  cmp LICENSE plugin/payload/bin/hooks/riprap/LICENSE   # notice travels with every copy
 for t in plugin/payload/bin/hooks/riprap/tests/test-*.sh; do bash "$t"; done
 shellcheck -S warning $(find bin plugin/hooks plugin/scripts plugin/payload/bin \
   -type f \( -name '*.sh' -o -perm -u+x \))

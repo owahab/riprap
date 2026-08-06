@@ -1,7 +1,6 @@
 ---
 name: learn
 description: Review the current session and update CLAUDE.md and .claude/instructions/ with new learnings, patterns, or insights discovered. Use when the user runs /riprap:learn or asks to document what was learned this session.
-license: MIT
 ---
 
 # Learn - Document Session Learnings

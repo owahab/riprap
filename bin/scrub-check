@@ -61,8 +61,10 @@ allowed() {  # $1 = repo-relative path
   case "$1" in
     # Vendor token PREFIXES here are detection signatures, not integrations:
     # they catch a leaked credential in any repo regardless of what it uses.
-    # Verified to contain no actual secret values. Same set gitleaks ships.
-    */hooks/lib/secret-patterns.sh) return 0 ;;
+    # Verified to contain no actual secret values. Both path forms are listed
+    # because the namespacing move renamed hooks/lib to hooks/riprap/lib, and an
+    # exemption that silently stops matching is worse than no exemption at all.
+    */hooks/lib/secret-patterns.sh|*/hooks/riprap/lib/secret-patterns.sh) return 0 ;;
     # This file necessarily contains every banned term, as data.
     */bin/scrub-check|bin/scrub-check) return 0 ;;
     # A copyright holder's name in a licence is the one place it belongs, and
@@ -115,6 +117,19 @@ allowed_line() {  # $1 = the matched line
     # appears in the README and on the docs site by necessity. Exempt only in
     # that exact command; the bare handle anywhere else still fails.
     *marketplace\ add\ owahab/riprap*) return 0 ;;
+    # The copyright holder's name, in the two documents whose whole purpose is to
+    # name them: the trademark policy asserting who owns the name, and the
+    # contributor agreement naming who the grant runs to. Anchored to those two
+    # paths AND to that name — anything else in the same files still fails, which
+    # is the difference between this and exempting the files in allowed(). An
+    # entry there would skip every scan on the file, and CLA.md is exactly the
+    # kind of document that grows an address and a date.
+    *TRADEMARK.md:*[Oo]mar\ [Aa]li*|*CLA.md:*[Oo]mar\ [Aa]li*) return 0 ;;
+    # The plugin manifest's author field. This is the attribution the licence
+    # requires, rendered by the harness where a user can see who wrote the thing
+    # they installed — publishing it is the point, not an accident. Anchored to
+    # that one file and that one value.
+    *plugin.json:*\"name\":\ \"[Oo]mar\ [Aa]li\"*) return 0 ;;
   esac
   return 1
 }

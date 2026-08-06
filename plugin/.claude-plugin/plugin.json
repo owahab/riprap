@@ -1,10 +1,14 @@
 {
   "name": "riprap",
   "description": "Baseline engineering guardrails for Claude Code, enforced rather than suggested.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "homepage": "https://riprap.dev",
   "repository": "https://github.com/owahab/riprap",
-  "license": "MIT",
+  "author": {
+    "name": "Omar Ali",
+    "url": "https://riprap.dev"
+  },
+  "license": "LicenseRef-PolyForm-Perimeter-1.0.1",
   "keywords": [
     "guardrails",
     "standards",
