@@ -19,26 +19,97 @@ jobs:
       - name: Shellcheck
         run: |
           sudo apt-get update -qq && sudo apt-get install -y shellcheck
-          shellcheck -S warning $(find bin template/bin -type f \
-            \( -name '*.sh' -o -perm -u+x \) ! -path '*/.git/*' | sort -u)
+          shellcheck -S warning $(find bin plugin/hooks plugin/scripts plugin/payload/bin \
+            -type f \( -name '*.sh' -o -perm -u+x \) ! -path '*/.git/*' 2>/dev/null | sort -u)
 
       - name: Hook tests
-        run: for t in template/bin/hooks/tests/test-*.sh; do bash "$t"; done
+        run: for t in plugin/payload/bin/hooks/riprap/tests/test-*.sh; do bash "$t"; done
 
-      - name: Manifest matches the tree
+      - name: Manifest matches the payload, and stays namespaced
         run: bin/build-manifest --check
 
       - name: Nothing publishable leaks
-        run: bin/scrub-check template/ docs/
+        run: bin/scrub-check plugin/ docs/ README.md
 
-      # .claude/ is prose; bin/ is executables. One find keeps it true.
+      # The plugin ships prose and skills; every executable is in the payload,
+      # where the project can read it. One find keeps that true.
       - name: Prose and scripts stay apart
         run: |
-          found=$(find template/.claude -type f ! -name '*.md' ! -name 'settings.json')
-          if [ -n "$found" ]; then echo "non-markdown in .claude/:"; echo "$found"; exit 1; fi
+          found=$(find plugin/instructions plugin/skills -type f ! -name '*.md')
+          if [ -n "$found" ]; then echo "non-markdown in plugin prose:"; echo "$found"; exit 1; fi
 
-      - name: settings.json is valid JSON
-        run: jq -e . template/.claude/settings.json > /dev/null
+      - name: Plugin metadata is valid JSON
+        run: |
+          for f in .claude-plugin/marketplace.json plugin/.claude-plugin/plugin.json \
+                   plugin/hooks/hooks.json; do
+            jq -e . "$f" > /dev/null || { echo "invalid JSON: $f"; exit 1; }
+          done
+
+      # The founding incident: a hook was written, reviewed, merged — and never
+      # referenced from any settings file. It looked enforced for months and was
+      # not. That check belongs here, upstream, where both halves are visible,
+      # rather than only in the payload where it can only report the damage.
+      - name: Every shipped hook is registered, and every registration exists
+        run: |
+          fail=0
+          jq -r '[.hooks[][].hooks[].command]
+                 | map(capture("run-payload-hook (?<n>[a-z0-9-]+\\.sh)").n)
+                 | .[]' plugin/hooks/hooks.json | sort -u > /tmp/registered
+          # Read loops rather than `for n in $var`: a bare expansion depends on
+          # IFS containing a newline, which is true in bash and not everywhere.
+          while IFS= read -r n; do
+            [ -n "$n" ] || continue
+            [ -f "plugin/payload/bin/hooks/riprap/claude/$n" ] || {
+              echo "❌ hooks.json registers $n, which the payload does not ship"; fail=1; }
+          done < /tmp/registered
+          for f in plugin/payload/bin/hooks/riprap/claude/*.sh; do
+            n=$(basename "$f")
+            # lint-example.sh is an inert template. Wiring a rule that never
+            # fires teaches people to ignore the wiring.
+            [ "$n" = "lint-example.sh" ] && continue
+            grep -qx "$n" /tmp/registered || {
+              echo "❌ $f exists but hooks.json does not register it"; fail=1; }
+          done
+          [ "$fail" -eq 0 ] && echo "✅ hook registration matches the payload"
+          exit "$fail"
+
+      - name: Skills are namespaced and self-describing
+        run: |
+          fail=0
+          for d in plugin/skills/*/; do
+            n=$(basename "$d")
+            grep -q "^name: $n$" "$d/SKILL.md" || {
+              echo "❌ $d/SKILL.md name: does not match its directory"; fail=1; }
+            # The harness prefixes the plugin name; the description has to agree,
+            # or a project with its own /$n leaves the model choosing between two.
+            if grep -qE "(^|[^:])/$n\b" "$d/SKILL.md"; then
+              echo "❌ $d/SKILL.md refers to /$n; it is invoked as /riprap:$n"; fail=1
+            fi
+          done
+          [ "$fail" -eq 0 ] && echo "✅ skills namespaced"
+          exit "$fail"
+
+      # The plugin must be harmless in a repository that never ran the install.
+      # Every guardrail hook goes through the dispatcher for exactly this reason.
+      - name: Plugin is inert without the payload
+        run: |
+          mkdir -p /tmp/bare && cd /tmp/bare && git init -q
+          cd "$GITHUB_WORKSPACE"
+          fail=0
+          for n in block-destructive-outside-cwd.sh block-unreviewed-merge.sh \
+                   lint-secrets.sh format-on-write.sh session-end.sh; do
+            out=$(echo '{}' | CLAUDE_PROJECT_DIR=/tmp/bare \
+                  plugin/hooks/run-payload-hook "$n" 2>&1) || {
+              echo "❌ $n exited non-zero with no payload"; fail=1; continue; }
+            [ -z "$out" ] || { echo "❌ $n printed output with no payload: $out"; fail=1; }
+          done
+          [ "$fail" -eq 0 ] && echo "✅ inert without the payload"
+          exit "$fail"
+
+      - name: SessionStart emits valid JSON
+        run: |
+          CLAUDE_PLUGIN_ROOT="$PWD/plugin" plugin/hooks/session-start \
+            | jq -e '.hookSpecificOutput.additionalContext | length > 500' > /dev/null
 
   # Proves the thing riprap actually promises: that installing it works.
   install:
@@ -51,13 +122,38 @@ jobs:
           git init -q && git config user.email ci@example.com && git config user.name CI
           echo "# target" > README.md && git add -A && git commit -qm init
           cd "$GITHUB_WORKSPACE"
-          bin/riprap install /tmp/target
+          plugin/scripts/install-payload /tmp/target
           cd /tmp/target
-          bin/setup
+          bin/riprap wire
           test "$(git config core.hooksPath)" = "bin/hooks/git"
-          bin/verify-hook-wiring
-          bin/verify-stubs
-          for t in bin/hooks/tests/test-*.sh; do bash "$t"; done
+          bin/riprap verify
+          for t in bin/hooks/riprap/tests/test-*.sh; do bash "$t"; done
           # A fresh install must be committable — its own fixtures must not trip
-          # the secret hook.
-          git add -A && git commit -qm "install riprap"
+          # the secret hook, and the delegating seed hook must actually fire.
+          # Without that grep a broken delegation looks exactly like a clean commit.
+          git add -A
+          git commit -qm "install riprap" 2>&1 | tee /tmp/commit.log
+          grep -q "secret hygiene passed" /tmp/commit.log \
+            || { echo "❌ the seed pre-commit did not reach riprap's checks"; exit 1; }
+
+      - name: Re-running the install is the update path, and changes nothing
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          plugin/scripts/install-payload /tmp/target
+          cd /tmp/target
+          test -z "$(git status --porcelain)" \
+            || { echo "❌ re-running the install dirtied the tree:"; git status --short; exit 1; }
+          echo "✅ install is idempotent"
+
+      - name: A retired guardrail is pruned, not left running
+        run: |
+          cd /tmp/target
+          echo "stale" > bin/hooks/riprap/lib/retired-patterns.sh
+          git add -A && git commit -qm stale
+          cd "$GITHUB_WORKSPACE"
+          plugin/scripts/install-payload /tmp/target > /dev/null
+          test ! -f /tmp/target/bin/hooks/riprap/lib/retired-patterns.sh \
+            || { echo "❌ a file upstream no longer ships was left in place"; exit 1; }
+          test -f /tmp/target/bin/hooks/riprap/VERSION \
+            || { echo "❌ the version stamp was pruned"; exit 1; }
+          echo "✅ pruned, and the version stamp survived"

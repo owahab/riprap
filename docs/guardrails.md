@@ -18,6 +18,12 @@ layers, and the fourth is the one that matters.
 4. **One shared pattern library** — `bin/hooks/lib/<topic>-patterns.sh`, holding the
    patterns *and* the allow-list, sourced by both hooks above.
 
+Those are the paths for a rule *you* write. riprap's own live one level down, under
+`bin/hooks/riprap/`, which is replaced wholesale on every install — so nothing you write
+belongs there. To add a pattern to a rule riprap already enforces, you need none of the
+four layers: `bin/hooks/lib/<topic>-patterns.local.sh` is sourced by riprap's library if it
+exists, so your patterns survive an update and you keep every upstream fix to the rest.
+
 Layer 4 is the one people skip. With two copies of a regex set they drift, and the day
 they drift is the day one of them silently stops enforcing what you believe is enforced.
 
@@ -27,8 +33,8 @@ They are different systems and confusing them is the most common mistake:
 
 | | Trigger | Blocks with | Message goes to |
 |---|---|---|---|
-| `bin/hooks/claude/` | a tool call | exit **2** | **stderr** — stdout is discarded |
-| `bin/hooks/git/` | a commit or push | exit **1** | stdout is fine |
+| Claude hooks | a tool call | exit **2** | **stderr** — stdout is discarded |
+| git hooks | a commit or push | exit **1** | stdout is fine |
 
 Exit 0 means allow, and is also the right answer for every "this does not concern me"
 case: wrong tool, wrong file type, exempt path, empty content.
@@ -50,10 +56,16 @@ includes the tests written to verify it.
 ## Verify the wiring
 
 ```bash
-bin/verify-hook-wiring
+bin/riprap verify
 ```
 
-A hook that exists but is not referenced in `settings.json` is worse than no hook, because
-you stop thinking about the thing it was meant to cover. This check exists because exactly
-that happened: a lint hook and its pattern library were written, reviewed, merged — and
-silently never wired. It looked enforced for months.
+A hook that exists but is not registered is worse than no hook, because you stop thinking
+about the thing it was meant to cover. This check exists because exactly that happened: a
+lint hook and its pattern library were written, reviewed, merged — and silently never
+wired. It looked enforced for months.
+
+`bin/riprap verify` covers what can rot inside a project: a hook that lost its executable
+bit, a pattern library that no longer resolves, and — the one that catches most real
+breakage — a `core.hooksPath` pointing at a directory containing no `pre-commit` at all.
+That last state looks configured and enforces nothing. riprap's own CI covers the other
+half, cross-checking the registration list against the shipped hooks in both directions.

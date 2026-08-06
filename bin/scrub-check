@@ -2,9 +2,9 @@
 # scrub-check — fail on anything that must not be published.
 #
 # Riprap is distilled from a private codebase. This is the gate that keeps the
-# private parts private. It runs in four places (see .claude/instructions or the
-# README): Riprap's own CI over template/, `riprap contribute` on every file
-# promoted upstream, PR CI over docs/, and on demand over an installed project.
+# private parts private. It runs in three places (see the README): riprap's own
+# CI over plugin/ and docs/, which is also what gates every contribution, since
+# those arrive as pull requests; and on demand over an installed project.
 #
 # Exit 0 = clean, 1 = findings, 2 = usage error.
 #
@@ -110,6 +110,11 @@ allowed_line() {  # $1 = the matched line
     # people clone and browse — it is the project's public identity, not a leak.
     # Only this exact repo path is exempt; the handle anywhere else still fails.
     *github.com/owahab/riprap*|*github.com:owahab/riprap*) return 0 ;;
+    # Same identity, the form the plugin marketplace uses. `/plugin marketplace
+    # add owahab/riprap` is the documented first step of installing riprap, so it
+    # appears in the README and on the docs site by necessity. Exempt only in
+    # that exact command; the bare handle anywhere else still fails.
+    *marketplace\ add\ owahab/riprap*) return 0 ;;
   esac
   return 1
 }

@@ -44,54 +44,76 @@ This is what separates riprap from a list of things that sound sensible:
 
 ## Install
 
-```bash
-git clone git@github.com:owahab/riprap.git ~/Projects/riprap
-ln -s ~/Projects/riprap/bin/riprap /usr/local/bin/riprap   # optional
+riprap is a Claude Code plugin. There is nothing to clone.
 
-riprap install ~/Projects/my-app
-cd ~/Projects/my-app && bin/setup
+```
+/plugin marketplace add owahab/riprap
+/plugin install riprap
+/riprap:install
 ```
 
-Your project is **not** a fork of riprap. It receives a copy plus a manifest, and keeps
-its own history and remote. Then:
+The first two commands give you the guardrail documents, the four skills, and the Claude
+hooks — none of which put a file in your repository. `/riprap:install` adds the half that
+has to live there: the guardrail scripts, their pattern libraries, the git hooks, and the
+four stack commands the hooks call.
 
-```bash
-riprap update ~/Projects/my-app                # pull improvements, keeping your edits
-riprap contribute ~/Projects/my-app <path>     # send one back upstream
-```
+Run `/riprap:install` again any time. It is the update path.
 
-### What update will and will not touch
+### What riprap will and will not touch in your repo
 
-Every installed file is one of two tiers, recorded in `.riprap-manifest.json`:
+**It never touches your `CLAUDE.md` or your `.claude/settings.json`.** The documents reach
+the model through a SessionStart hook and the skills are namespaced by the harness as
+`/riprap:learn` and friends, so there is nothing to merge and nothing to collide with. A
+repo with its own `/learn` keeps it.
 
-| Tier | Behaviour |
-|---|---|
-| `template` | Owned upstream. `update` refreshes it — **unless you changed it**, in which case it reports the conflict and leaves your version alone. |
-| `seed` | Yours from the moment it lands: `CLAUDE.md`, `.claude/settings.json`, and the four `bin/` stubs. Never overwritten. |
+What lands on disk is one of two tiers:
 
-The manifest records the hash of what riprap last wrote, which is what lets `update` tell
-your work from ours rather than guessing.
+| Tier | What | Behaviour |
+|---|---|---|
+| namespaced | `bin/hooks/riprap/**`, `bin/riprap` | riprap's. Refreshed wholesale on every install; files it stops shipping are pruned. |
+| seed | `bin/hooks/git/{pre-commit,pre-push}`, `bin/{test,lint,format,setup}` | Yours from the moment they land. Written once, never replaced. |
+
+There is no conflict detection, because there is nothing to detect: everything riprap
+overwrites lives under a path only riprap uses, and CI refuses to ship a file that breaks
+that rule. Your own guardrails go in `bin/hooks/lib/`, which riprap never writes to. To
+*extend* one of riprap's rules rather than fork it, add
+`bin/hooks/lib/<rule>-patterns.local.sh` — riprap's library sources it if present, so your
+patterns survive an update and you keep every upstream fix to the rest of the list.
+
+The one thing riprap wires into a file it does not own is the git hook, and only when you
+run `bin/riprap wire`. If another tool already owns `core.hooksPath` — husky, lefthook, a
+hand-rolled `.githooks/` — it refuses and prints the one line to add instead. Taking that
+setting would disable every one of their hooks with no error and no output.
+
+Improvements flow back as ordinary pull requests.
 
 ---
 
 ## What you get
 
+**From the plugin** — outside your repo, nothing to maintain:
+
 ```
-CLAUDE.md                      loaded every session; a router, not a rulebook
-.claude/
-  settings.json                permissions + hook wiring
-  instructions/                14 docs, indexed by task
-  skills/                      /learn  /spec  /council  /branch-cleaner
+instructions/     15 docs, indexed by task. A router is injected each session;
+                  the rest are read on demand.
+skills/           /riprap:learn  /riprap:spec  /riprap:council  /riprap:branch-cleaner
+hooks/            the Claude hook registrations, and the session router
+```
+
+**In your repo**, after `/riprap:install`:
+
+```
 bin/
-  test lint format setup       ← the only stack-specific files. You fill these in.
-  verify-stubs                 what still needs configuring
-  verify-hook-wiring           catches a hook that exists but is not wired
+  test lint format setup    ← the only stack-specific files. You fill these in.
+  riprap                    wire / verify — what a fresh clone and CI run
   hooks/
-    claude/                    PreToolUse / PostToolUse — exit 2 blocks a tool call
-    git/                       pre-commit, pre-push — exit 1 rejects a commit
-    lib/                       pattern libraries, shared by BOTH families
-    tests/                     71 assertions, runnable in your own repo
-docs/ tmp/                     durable docs; git-ignored session scratch
+    git/                    pre-commit, pre-push — yours, delegating to riprap's
+    lib/                    your pattern libraries. riprap never writes here.
+    riprap/                 riprap's, refreshed on every install
+      claude/               PreToolUse / PostToolUse — exit 2 blocks a tool call
+      git/                  exit 1 rejects a commit
+      lib/                  pattern libraries, shared by BOTH families
+      tests/                71 assertions, runnable in your own repo
 ```
 
 ### The stack seam
@@ -120,14 +142,16 @@ That fourth layer is the one people skip and the one that matters. With two copi
 regex set they drift, and the day they drift is the day one of them silently stops
 enforcing what you believe is enforced.
 
-`bin/hooks/claude/lint-example.sh` and `bin/hooks/lib/example-patterns.sh` are a working
-skeleton to copy; `.claude/instructions/guardrail-template.md` is the document shape.
+`bin/hooks/riprap/claude/lint-example.sh` and `bin/hooks/riprap/lib/example-patterns.sh`
+are a working skeleton to copy out into `bin/hooks/lib/`; `guardrail-template.md` is the
+document shape.
 
 ---
 
 ## Behavioral rules
 
-`CLAUDE.md` ships six, loaded every session:
+Six, injected into context at the start of every session — without a line being added to
+your `CLAUDE.md`:
 
 | Rule | What it does |
 |---|---|
@@ -146,11 +170,15 @@ security-sensitive change autonomously.
 
 ## Conventions
 
-- **`docs/`** is durable, checked-in documentation. **`tmp/`** is session scratch and is
-  git-ignored — nothing in it is project documentation.
+Conventions riprap documents but does not impose — it creates no directories and adds no
+ignore rules, because a project that already ignores `tmp/` does not need riprap's opinion
+about it:
+
+- **`docs/`** is durable, checked-in documentation. **`tmp/`** is session scratch and
+  should be git-ignored — nothing in it is project documentation.
 - Plans go in `tmp/tasks/<topic>.md` as checkable items, with a review section when the
   work lands.
-- Session handovers go in `tmp/handover/`, named `handover-<YYYY-MM-DD>-<topic>.md`.
+- Session handovers go in `tmp/handover/`.
 - Reference files by path relative to the repo root, never absolutely.
 
 ---

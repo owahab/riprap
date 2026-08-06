@@ -22,21 +22,24 @@ integration. It assumes nothing about your stack beyond four scripts in `bin/`.
 
 ## Install
 
-```bash
-git clone git@github.com:owahab/riprap.git ~/Projects/riprap
-ln -s ~/Projects/riprap/bin/riprap /usr/local/bin/riprap
+riprap is a Claude Code plugin. There is nothing to clone.
 
-riprap install ~/Projects/my-app
-cd ~/Projects/my-app && bin/setup
+```
+/plugin marketplace add owahab/riprap
+/plugin install riprap
+/riprap:install
 ```
 
-Your project does not become a fork. It receives a copy plus a manifest, and keeps its own
-history and remote.
+The plugin carries the documents, the skills, and the Claude hooks — none of which put a
+file in your repository, and none of which touch your `CLAUDE.md` or `.claude/settings.json`.
+`/riprap:install` adds the half that has to live in the repo: the guardrail scripts, their
+pattern libraries, the git hooks, and the four stack commands the hooks call.
 
-```bash
-riprap update ~/Projects/my-app                # pull improvements, keeping your edits
-riprap contribute ~/Projects/my-app <path>     # send one back upstream
-```
+Everything it writes there lives under `bin/hooks/riprap/`, a path only riprap uses, so
+installing into a repo that already has its own instructions, skills, and hooks cannot
+overwrite any of them. Run it again any time — it is also the update path.
+
+Improvements flow back as ordinary pull requests.
 
 ## Every rule has an incident behind it
 
