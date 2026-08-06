@@ -69,3 +69,8 @@ bit, a pattern library that no longer resolves, and — the one that catches mos
 breakage — a `core.hooksPath` pointing at a directory containing no `pre-commit` at all.
 That last state looks configured and enforces nothing. riprap's own CI covers the other
 half, cross-checking the registration list against the shipped hooks in both directions.
+
+---
+
+- [Installing riprap](install.md)
+- [Source on GitHub](https://github.com/owahab/riprap)

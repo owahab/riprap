@@ -15,6 +15,24 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../lib/secret-patterns.sh
 source "$SCRIPT_DIR/../lib/secret-patterns.sh"
 
+# jq is a hard dependency: the tool payload arrives as JSON on stdin and there is
+# no way to read it without one. Absent, this hook would exit 127 — which Claude
+# Code treats as a non-blocking error, so the tool call PROCEEDS. A guardrail that
+# waves things through because a dependency is missing is the exact failure this
+# hook exists to prevent, so it blocks instead and says what to install.
+if ! command -v jq >/dev/null 2>&1; then
+  {
+    echo "❌ Blocked: riprap's guardrails need jq, which is not on PATH."
+    echo ""
+    echo "   macOS:  brew install jq"
+    echo "   Debian: sudo apt-get install jq"
+    echo ""
+    echo "Blocking rather than allowing: without jq this hook cannot read the tool"
+    echo "payload, and an unverifiable action is indistinguishable from an unsafe one."
+  } >&2
+  exit 2
+fi
+
 INPUT=$(cat)
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
 

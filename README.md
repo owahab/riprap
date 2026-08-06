@@ -59,6 +59,9 @@ four stack commands the hooks call.
 
 Run `/riprap:install` again any time. It is the update path.
 
+Full instructions — requirements, fresh clones, coexisting with an existing hook manager —
+are at [riprap.dev/install](https://riprap.dev/install).
+
 ### What riprap will and will not touch in your repo
 
 **It never touches your `CLAUDE.md` or your `.claude/settings.json`.** The documents reach

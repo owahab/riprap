@@ -10,6 +10,11 @@
 # every edit before you have set it up would just get deleted.
 set -euo pipefail
 
+# jq is needed to read the tool payload. Absent, do nothing at all: this hook is
+# a convenience, and a missing dependency should not turn every edit into an
+# error. The blocking hooks refuse loudly instead — that is where it gets noticed.
+command -v jq >/dev/null 2>&1 || exit 0
+
 INPUT=$(cat)
 
 # PostToolUse payloads carry the path in either shape depending on the tool.

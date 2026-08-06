@@ -39,6 +39,9 @@ Everything it writes there lives under `bin/hooks/riprap/`, a path only riprap u
 installing into a repo that already has its own instructions, skills, and hooks cannot
 overwrite any of them. Run it again any time — it is also the update path.
 
+Full instructions, including requirements, teammates, and what to do when another tool
+already owns your git hooks: **[Installing riprap](install.md)**.
+
 Improvements flow back as ordinary pull requests.
 
 ## Every rule has an incident behind it
@@ -55,5 +58,6 @@ Improvements flow back as ordinary pull requests.
 
 ## Further reading
 
+- [Installing riprap](install.md) — the three commands, and what lands where
 - [Guardrail architecture](guardrails.md) — how a rule is made to hold
 - [Source on GitHub](https://github.com/owahab/riprap)

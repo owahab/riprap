@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # bin/riprap — riprap's repo-side tool. Upstream owns this file.
 #
-#   bin/riprap wire      wire riprap into this repository
-#   bin/riprap verify    check the wiring without changing anything (= wire --check)
+#   bin/riprap wire              wire riprap into this repository
+#   bin/riprap verify            check the wiring, change nothing (= wire --check)
+#   bin/riprap wire --uninstall  undo the wiring
 #
 # This exists as a script, rather than only as the /riprap:install command, for
 # two reasons that are easy to forget:
@@ -24,7 +25,9 @@ SETTINGS=".claude/settings.json"
 GIT_HOOKS="bin/hooks/git"
 CHECK=0
 
-usage() { sed -n '2,5p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+UNINSTALL=0
+
+usage() { sed -n '2,6p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 
 case "${1:-}" in
   wire)   shift ;;
@@ -32,7 +35,12 @@ case "${1:-}" in
   -h|--help|"") usage 0 ;;
   *) printf 'unknown command: %s\n\n' "$1" >&2; usage 1 ;;
 esac
-[ "${1:-}" = "--check" ] && CHECK=1
+case "${1:-}" in
+  --check)     CHECK=1 ;;
+  --uninstall) UNINSTALL=1 ;;
+  "") ;;
+  *) printf 'unknown option: %s\n\n' "$1" >&2; usage 1 ;;
+esac
 
 FAILED=0
 note() { printf '%s\n' "$*"; }
@@ -61,8 +69,37 @@ wire_git_hooks() {
   fi
 
   git config core.hooksPath "$GIT_HOOKS"
+  # Record that riprap set it, so --uninstall can tell "we claimed this" from
+  # "it was already pointing here and is not ours to unset".
+  [ -n "$current" ] || git config riprap.hooksPath.owned true
   chmod +x "$GIT_HOOKS"/* bin/hooks/riprap/git/* 2>/dev/null || true
   note "✅ git hooks wired (core.hooksPath = $GIT_HOOKS)"
+}
+
+# --- undo ---------------------------------------------------------------------
+# Reverses only what wire did, and only where riprap did it. Deliberately does
+# not delete files: an uninstall that runs rm -rf on a flag is a footgun, and the
+# adopter can read a path.
+unwire() {
+  if [ "$(git config --get riprap.hooksPath.owned || true)" = "true" ]; then
+    git config --unset core.hooksPath || true
+    git config --unset riprap.hooksPath.owned || true
+    note "✅ core.hooksPath unset — riprap set it, so riprap removed it"
+  else
+    local current
+    current="$(git config --get core.hooksPath || true)"
+    if [ -n "$current" ]; then
+      note "ℹ️  Leaving core.hooksPath = $current alone: riprap did not set it."
+      note "   If you added riprap's delegation line to $current/pre-commit, delete it."
+    else
+      note "ℹ️  core.hooksPath is already unset. Nothing to undo."
+    fi
+  fi
+
+  note ""
+  note "riprap's files are still on disk. To remove them:"
+  note "    rm -rf bin/hooks/riprap bin/riprap"
+  note "Your bin/hooks/git/* and bin/{test,lint,format,setup} are yours — left alone."
 }
 
 # --- the effective git wiring ------------------------------------------------
@@ -153,6 +190,11 @@ verify_stubs() {
 }
 
 # --- run ---------------------------------------------------------------------
+if [ "$UNINSTALL" -eq 1 ]; then
+  unwire
+  exit 0
+fi
+
 if [ "$CHECK" -eq 1 ]; then
   verify_git_hooks_effective
 else
