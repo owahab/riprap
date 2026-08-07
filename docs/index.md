@@ -8,8 +8,8 @@ hero_lede: >-
   that lives only in a document is a suggestion. Everything here is enforced by something
   that can say no.
 hero_commands:
-  - /plugin marketplace add owahab/riprap
-  - /plugin install riprap@riprap
+  - /plugin marketplace add influpert/riprap
+  - /plugin install riprap@influpert
   - /riprap:install
 hero_commands_note: >-
   Three commands, nothing to clone. The first two touch no file in your repository.
@@ -61,8 +61,8 @@ exists because of a specific failure, and each entry names the mechanism and wha
 riprap is a Claude Code plugin. There is nothing to clone.
 
 ```
-/plugin marketplace add owahab/riprap
-/plugin install riprap@riprap
+/plugin marketplace add influpert/riprap
+/plugin install riprap@influpert
 /riprap:install
 ```
 
@@ -245,5 +245,5 @@ PolyForm has no SPDX identifier. If your organisation scans, read
 - [What riprap tells the model](rules.md) — the rules, how they reach the model, what they cost
 - [Reference](reference.md) — every document, skill, hook and stack seam, catalogued
 - [Licence and the name](license.md) — what PolyForm Perimeter permits, and what your scanner will say
-- [Source on GitHub](https://github.com/owahab/riprap)
+- [Source on GitHub](https://github.com/influpert/riprap)
 {: .doc-links}

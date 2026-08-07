@@ -103,7 +103,7 @@ jobs:
 
           # 3. One install command form. Both work, but two documented forms is how the
           #    README and the site started disagreeing in the first place.
-          bad=$(grep -rn '/plugin install riprap' README.md docs/ | grep -v 'riprap@riprap' || true)
+          bad=$(grep -rn '/plugin install riprap' README.md docs/ | grep -v 'riprap@influpert' || true)
           [ -z "$bad" ] || { echo "❌ unqualified install command:"; echo "$bad"; fail=1; }
 
           # 4. Internal links resolve. jekyll-relative-links rewrites these at build

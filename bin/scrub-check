@@ -67,8 +67,10 @@ allowed() {  # $1 = repo-relative path
     */hooks/lib/secret-patterns.sh|*/hooks/riprap/lib/secret-patterns.sh) return 0 ;;
     # This file necessarily contains every banned term, as data.
     */bin/scrub-check|bin/scrub-check) return 0 ;;
-    # A copyright holder's name in a licence is the one place it belongs, and
-    # the repo is published under that name anyway. Everywhere else it is a leak.
+    # The Required Notice names the copyright holder, and a licence is the one place that
+    # name belongs — it is precisely what the Notices clause obliges every redistributor to
+    # carry onward. The holder shares its name with the organisation the source-project scan
+    # bans below, so without this exemption all three licence copies would be findings.
     LICENSE|*/LICENSE|*/LICENSE.txt|*/LICENSE.md) return 0 ;;
   esac
   return 1
@@ -108,28 +110,44 @@ check_binaries() {
 # scan means nothing, so every entry names what it permits and why.
 allowed_line() {  # $1 = the matched line
   case "$1" in
-    # riprap's own repository address. The owner's handle is part of the URL
-    # people clone and browse — it is the project's public identity, not a leak.
-    # Only this exact repo path is exempt; the handle anywhere else still fails.
-    *github.com/owahab/riprap*|*github.com:owahab/riprap*) return 0 ;;
-    # Same identity, the form the plugin marketplace uses. `/plugin marketplace
-    # add owahab/riprap` is the documented first step of installing riprap, so it
-    # appears in the README and on the docs site by necessity. Exempt only in
-    # that exact command; the bare handle anywhere else still fails.
-    *marketplace\ add\ owahab/riprap*) return 0 ;;
-    # The copyright holder's name, in the two documents whose whole purpose is to
-    # name them: the trademark policy asserting who owns the name, and the
-    # contributor agreement naming who the grant runs to. Anchored to those two
-    # paths AND to that name — anything else in the same files still fails, which
-    # is the difference between this and exempting the files in allowed(). An
-    # entry there would skip every scan on the file, and CLA.md is exactly the
-    # kind of document that grows an address and a date.
-    *TRADEMARK.md:*[Oo]mar\ [Aa]li*|*CLA.md:*[Oo]mar\ [Aa]li*) return 0 ;;
+    # riprap's own repository path. The organisation name is half of the address
+    # people clone, browse, and register as a marketplace — it is the project's
+    # public identity, not a leak. Anchored to `<org>/riprap`, which covers the
+    # https and ssh URLs, `/plugin marketplace add`, and prose naming the repo.
+    # A BARE organisation name — which is what a reference to the private source
+    # project looks like — matches none of these and still fails.
+    *influpert/riprap*) return 0 ;;
+    # The qualified install command, `/plugin install riprap@influpert`. The suffix
+    # is the marketplace name, so it necessarily carries the organisation without
+    # the `/riprap` path above. Anchored to the `riprap@` prefix for that reason.
+    *riprap@influpert*) return 0 ;;
+    # The organisation's own site, linked from the footer of every docs page via
+    # docs/_config.yml. A published domain, not a name dropped in prose. Change
+    # that URL and this entry has to change with it.
+    *influpert.com*) return 0 ;;
+    # That link's display text, one line above the URL in the same file. The label
+    # and the href are the same published fact, so exempting one without the other
+    # would only invite someone to delete the credit to get CI green. Anchored to
+    # that one file and that one key.
+    *_config.yml:*title:\ [Ii]nflupert*) return 0 ;;
+    # The reviewing team, in the only file that can name one. `@org/team` is forge
+    # syntax for an access-control group, not a mention of a codebase, and every
+    # rule in CODEOWNERS has to carry it. Anchored to that file AND to the `@org/`
+    # form: a bare organisation name in the same file still fails.
+    *CODEOWNERS:*@influpert/*) return 0 ;;
+    # The copyright holder, in the documents whose whole purpose is to name them:
+    # the trademark policy asserting who owns the name, and the contributor
+    # agreement naming who the grant runs to. Anchored to those two paths AND to
+    # that value — anything else in the same files still fails, which is the
+    # difference between this and exempting the files in allowed(). An entry there
+    # would skip every scan on the file, and CLA.md is exactly the kind of
+    # document that grows an address and a date.
+    *TRADEMARK.md:*[Ii]nflupert\ LLC*|*CLA.md:*[Ii]nflupert\ LLC*) return 0 ;;
     # The plugin manifest's author field. This is the attribution the licence
     # requires, rendered by the harness where a user can see who wrote the thing
     # they installed — publishing it is the point, not an accident. Anchored to
     # that one file and that one value.
-    *plugin.json:*\"name\":\ \"[Oo]mar\ [Aa]li\"*) return 0 ;;
+    *plugin.json:*\"name\":\ \"[Ii]nflupert\ LLC\"*) return 0 ;;
   esac
   return 1
 }
@@ -154,10 +172,19 @@ check_binaries "${PATHS[@]}" || true
 # -- identity --------------------------------------------------------------
 scan "absolute home path (identity + layout disclosure)" \
   '/(Users|home)/[a-z0-9_.-]+/'
+# The project moved to an organisation account and the copyright moved to an entity, so
+# nothing published names either the old handle or the individual any more. Both are kept
+# here with NO exemptions at all: a stale URL or a missed attribution is now a finding
+# rather than something that quietly passes because a carve-out outlived its reason.
 scan "personal name or handle" \
   '@owahab|owahab|omar[[:space:]]+ali'
 
 # -- source project --------------------------------------------------------
+# The private codebase riprap was distilled from shares its name with the organisation that
+# now publishes riprap, so this scan cannot ban the string outright. The exemptions in
+# allowed_line() carve out exactly the published forms — the repo path, the install command,
+# the website, and the copyright holder. A bare mention in prose is still a finding, which
+# is the case that matters: it is how a reference to the private project would look.
 scan "source project name" \
   'influpert'
 

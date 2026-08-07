@@ -15,7 +15,7 @@
 
 ## Contributor License Agreement
 
-- [ ] I have read and agree to the [riprap Contributor License Agreement](https://github.com/owahab/riprap/blob/main/CLA.md).
+- [ ] I have read and agree to the [riprap Contributor License Agreement](https://github.com/influpert/riprap/blob/main/CLA.md).
 
 The CLA lets riprap relicense contributions, including commercially — see Section 2.3, which also
 binds the project to keep your contribution available under whatever license riprap carries on the

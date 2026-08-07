@@ -3,9 +3,9 @@
   "description": "Baseline engineering guardrails for Claude Code, enforced rather than suggested.",
   "version": "0.2.0",
   "homepage": "https://riprap.dev",
-  "repository": "https://github.com/owahab/riprap",
+  "repository": "https://github.com/influpert/riprap",
   "author": {
-    "name": "Omar Ali",
+    "name": "Influpert LLC",
     "url": "https://riprap.dev"
   },
   "license": "LicenseRef-PolyForm-Perimeter-1.0.1",

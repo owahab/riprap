@@ -165,7 +165,7 @@ the maximum extent possible under law.
 
 ---
 
-**Us:** Omar Ali, riprap (https://riprap.dev)
+**Us:** Influpert LLC, riprap (https://riprap.dev)
 
 Adapted from the [Harmony Individual Contributor License Agreement (HA-CLA-I) Version 1.0,
 July 4, 2011](https://www.harmonyagreements.org/), used under a

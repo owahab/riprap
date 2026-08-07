@@ -47,8 +47,8 @@ This is what separates riprap from a list of things that sound sensible:
 riprap is a Claude Code plugin. There is nothing to clone.
 
 ```
-/plugin marketplace add owahab/riprap
-/plugin install riprap@riprap
+/plugin marketplace add influpert/riprap
+/plugin install riprap@influpert
 /riprap:install
 ```
 

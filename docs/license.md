@@ -11,7 +11,7 @@ redirect_from:
   - /licence/
 ---
 
-riprap is **source-available** under [PolyForm Perimeter 1.0.1](https://github.com/owahab/riprap/blob/main/LICENSE).
+riprap is **source-available** under [PolyForm Perimeter 1.0.1](https://github.com/influpert/riprap/blob/main/LICENSE).
 That is not an OSI open source licence, and the difference matters in exactly two places:
 what you may ship, and what your organisation's tooling will say about the file that lands
 in your repository. Both are below.
@@ -95,7 +95,7 @@ that is how licences work, and nothing here retracts it.
 ## The name
 
 The licence and the trademark are separate constraints, and both apply. The full policy is
-in [TRADEMARK.md](https://github.com/owahab/riprap/blob/main/TRADEMARK.md); the short
+in [TRADEMARK.md](https://github.com/influpert/riprap/blob/main/TRADEMARK.md); the short
 version is that talking about riprap is free and shipping something else called riprap is
 not.
 
@@ -109,7 +109,7 @@ official status or endorsement, and the project's domain and identity.
 ## If you want to change riprap
 
 The fork route is closed, so the route is a pull request. That is a real constraint and
-[CONTRIBUTING.md](https://github.com/owahab/riprap/blob/main/CONTRIBUTING.md) is upfront
+[CONTRIBUTING.md](https://github.com/influpert/riprap/blob/main/CONTRIBUTING.md) is upfront
 about what it asks of you: a contributor agreement that permits relicensing, which is the
 part most people will want to read before writing code rather than after.
 
@@ -120,6 +120,6 @@ than most patches.
 ---
 
 - [Installing riprap](install.md) — including what to check before installing into a scanned repository
-- [Licence](https://github.com/owahab/riprap/blob/main/LICENSE) · [Trademark policy](https://github.com/owahab/riprap/blob/main/TRADEMARK.md) · [Contributing](https://github.com/owahab/riprap/blob/main/CONTRIBUTING.md)
-- [Source on GitHub](https://github.com/owahab/riprap)
+- [Licence](https://github.com/influpert/riprap/blob/main/LICENSE) · [Trademark policy](https://github.com/influpert/riprap/blob/main/TRADEMARK.md) · [Contributing](https://github.com/influpert/riprap/blob/main/CONTRIBUTING.md)
+- [Source on GitHub](https://github.com/influpert/riprap)
 {: .doc-links}

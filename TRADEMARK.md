@@ -6,7 +6,7 @@ The [license](LICENSE) covers copyright and patents. Like almost every software 
 nothing about trademarks, which means it grants no rights in the name, the domain, or the project's
 identity. This document says what those rights are, so nobody has to guess.
 
-The purpose is narrow: a person who types `/plugin marketplace add owahab/riprap` should get the
+The purpose is narrow: a person who types `/plugin marketplace add influpert/riprap` should get the
 thing this repository publishes. Everything below follows from that and nothing more.
 
 ## What you may do, without asking
@@ -45,4 +45,4 @@ not something we will come after you for later.
 
 ---
 
-Copyright Omar Ali, riprap (https://riprap.dev)
+Copyright Influpert LLC, riprap (https://riprap.dev)

@@ -10,8 +10,8 @@ redirect_from:
 ---
 
 ```
-/plugin marketplace add owahab/riprap
-/plugin install riprap@riprap
+/plugin marketplace add influpert/riprap
+/plugin install riprap@influpert
 /riprap:install
 ```
 
@@ -44,13 +44,14 @@ On this page
 
 ## What each step does
 
-**`/plugin marketplace add owahab/riprap`** registers this repository as a plugin
-marketplace. riprap is its own marketplace, so there is no directory to go through.
+**`/plugin marketplace add influpert/riprap`** registers this repository as a plugin
+marketplace. The repository is its own marketplace, so there is no directory to go through.
 
-**`/plugin install riprap@riprap`** installs the plugin: 15 guardrail documents, four
-skills, and the Claude hook registrations. The form is `plugin@marketplace`, and here both
-are called `riprap`. Nothing lands in any repository. You can stop here if all you want is
-the documents and skills.
+**`/plugin install riprap@influpert`** installs the plugin: 15 guardrail documents, four
+skills, and the Claude hook registrations. The form is `plugin@marketplace` — the plugin is
+`riprap`, and it comes from the `influpert/riprap` marketplace you registered in the previous
+step. Nothing lands in any repository. You can stop here if all you want is the documents and
+skills.
 
 **`/riprap:install`** adds the half that has to live in the repo: the guardrail scripts,
 their shared pattern libraries, the git hooks, and the four stack commands the hooks call.
@@ -226,5 +227,5 @@ All optional, all configured in your user-level `~/.claude/`, none of them touch
 - [Guardrail architecture](guardrails.md) — what is enforced, and how a rule is made to hold
 - [What riprap tells the model](rules.md) — the rules, and what they cost you in context
 - [Reference](reference.md) — every document, skill, hook and file, catalogued
-- [Source on GitHub](https://github.com/owahab/riprap)
+- [Source on GitHub](https://github.com/influpert/riprap)
 {: .doc-links}

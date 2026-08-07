@@ -678,6 +678,14 @@ h2:hover > .heading-anchor, h3:hover > .heading-anchor, .heading-anchor:focus { 
   list-style: none;
   font-size: .9rem;
 }
+/* The organisation credit sits below the links and reads quieter than them: it is
+ * attribution, not navigation, and should not compete with Licence or Source for the
+ * eye. Only the name is a link, so the whole line does not look clickable. */
+.footer-powered {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: .85rem;
+}
 
 /* ---------------------------------------------------------------------------
  * 15. Narrow screens

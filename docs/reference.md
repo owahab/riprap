@@ -32,41 +32,41 @@ them and they would rot on every edit of every document.
 
 **Starting work**
 
-- [project-standards.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/project-standards.md) — conventions that apply to everything in this repo. Read this first.
-- [interaction-preferences.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/interaction-preferences.md) — how to work with the person on the other side of the session: when to argue, where a plan goes, and what to ask before starting.
-- [development-workflow.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/development-workflow.md) — when to stop and plan, how to scope a bug fix, and what "done" has to mean.
-- [handovers.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/handovers.md) — session handovers always go in `tmp/handover/`, never in `docs/` or the repo root.
+- [project-standards.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/project-standards.md) — conventions that apply to everything in this repo. Read this first.
+- [interaction-preferences.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/interaction-preferences.md) — how to work with the person on the other side of the session: when to argue, where a plan goes, and what to ask before starting.
+- [development-workflow.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/development-workflow.md) — when to stop and plan, how to scope a bug fix, and what "done" has to mean.
+- [handovers.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/handovers.md) — session handovers always go in `tmp/handover/`, never in `docs/` or the repo root.
 {: .doc-links}
 
 **Writing code**
 
-- [code-style.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/code-style.md) — naming, structure, and comments: the parts of style a formatter cannot decide for you.
-- [error-handling.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/error-handling.md) — let errors surface, and keep secrets and personal data out of the logs.
-- [mcp-servers.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/mcp-servers.md) — how to decide whether a capability belongs in an MCP server at all, and what has to be written down when you add one.
+- [code-style.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/code-style.md) — naming, structure, and comments: the parts of style a formatter cannot decide for you.
+- [error-handling.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/error-handling.md) — let errors surface, and keep secrets and personal data out of the logs.
+- [mcp-servers.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/mcp-servers.md) — how to decide whether a capability belongs in an MCP server at all, and what has to be written down when you add one.
 {: .doc-links}
 
 **Testing**
 
-- [testing.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/testing.md) — how to run tests, how to interpret failures, and the four mistakes that cost the most.
+- [testing.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/testing.md) — how to run tests, how to interpret failures, and the four mistakes that cost the most.
 {: .doc-links}
 
 **Committing and merging**
 
-- [git.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/git.md) — branching, committing, and merging rules, plus the failure modes that cost the most to undo.
-- [git-hooks.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/git-hooks.md) — two hook families live under `bin/hooks/`. Telling them apart is the whole document.
-- [merge-gates.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/merge-gates.md) — some changes never merge autonomously, however clean the review and however green the CI.
-- [ci-hygiene.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/ci-hygiene.md) — how to re-run CI without corrupting the result or burning the budget.
+- [git.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/git.md) — branching, committing, and merging rules, plus the failure modes that cost the most to undo.
+- [git-hooks.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/git-hooks.md) — two hook families live under `bin/hooks/`. Telling them apart is the whole document.
+- [merge-gates.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/merge-gates.md) — some changes never merge autonomously, however clean the review and however green the CI.
+- [ci-hygiene.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/ci-hygiene.md) — how to re-run CI without corrupting the result or burning the budget.
 {: .doc-links}
 
 **Security**
 
-- [secret-hygiene.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/secret-hygiene.md) — credentials must never enter an agent's context, and never reach a tracked file.
-- [permissions.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/permissions.md) — what the allow/deny/ask lists can and cannot do, and why riprap never edits them for you.
+- [secret-hygiene.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/secret-hygiene.md) — credentials must never enter an agent's context, and never reach a tracked file.
+- [permissions.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/permissions.md) — what the allow/deny/ask lists can and cannot do, and why riprap never edits them for you.
 {: .doc-links}
 
 **Extending the guardrails**
 
-- [guardrail-template.md](https://github.com/owahab/riprap/blob/main/plugin/instructions/guardrail-template.md) — the shape every guardrail document follows. Copy it, fill in the sections, delete the guidance.
+- [guardrail-template.md](https://github.com/influpert/riprap/blob/main/plugin/instructions/guardrail-template.md) — the shape every guardrail document follows. Copy it, fill in the sections, delete the guidance.
 {: .doc-links}
 
 ### All fifteen, alphabetically
@@ -152,5 +152,5 @@ scrubber can see inside.
 - [Installing riprap](install.md) — the three commands, and what lands where
 - [Guardrail architecture](guardrails.md) — what is enforced, and how a rule is made to hold
 - [What riprap tells the model](rules.md) — the rules, and what they cost you in context
-- [Source on GitHub](https://github.com/owahab/riprap)
+- [Source on GitHub](https://github.com/influpert/riprap)
 {: .doc-links}

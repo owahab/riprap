@@ -69,13 +69,21 @@ nav:
     url: /reference/
 
 # Keep each GitHub URL on ONE line. bin/scrub-check exempts the owner handle only in a line
-# containing github.com/owahab/riprap, so a wrapped URL becomes a finding.
+# containing github.com/influpert/riprap, so a wrapped URL becomes a finding.
 footer_links:
   - title: Licence
     url: /license/
   - title: Trademark
-    url: "https://github.com/owahab/riprap/blob/main/TRADEMARK.md"
+    url: "https://github.com/influpert/riprap/blob/main/TRADEMARK.md"
   - title: Contributing
-    url: "https://github.com/owahab/riprap/blob/main/CONTRIBUTING.md"
+    url: "https://github.com/influpert/riprap/blob/main/CONTRIBUTING.md"
   - title: Source
-    url: "https://github.com/owahab/riprap"
+    url: "https://github.com/influpert/riprap"
+
+# The organisation behind riprap, credited in the footer of every page. Kept as data for the
+# same reason nav is: one edit here rather than one per layout. bin/scrub-check bans the bare
+# organisation name everywhere except a handful of anchored forms, and `influpert.com` is one
+# of them — change this URL and the exemption in allowed_line() has to change with it.
+powered_by:
+  title: Influpert
+  url: "https://influpert.com"
