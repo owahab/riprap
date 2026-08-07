@@ -1,10 +1,13 @@
 ---
 title: Installing riprap
+eyebrow: Getting started
+lede: Three commands, and nothing to clone.
+description: >-
+  Requirements, what each command does, what lands in your repository, wiring the git hooks
+  for a team, coexisting with an existing hook manager, and how to remove it.
+redirect_from:
+  - /install.html
 ---
-
-# Installing riprap
-
-Three commands, and nothing to clone.
 
 ```
 /plugin marketplace add owahab/riprap
@@ -15,25 +18,13 @@ Three commands, and nothing to clone.
 Run the first two once, in any Claude Code session. Run the third from inside each project
 you want guarded.
 
----
+<nav class="toc" markdown="1">
+On this page
+{: .toc-title}
 
-## What each step does
-
-**`/plugin marketplace add owahab/riprap`** registers this repository as a plugin
-marketplace. riprap is its own marketplace, so there is no directory to go through.
-
-**`/plugin install riprap@riprap`** installs the plugin: 16 guardrail documents, four
-skills, and the Claude hook registrations. The form is `plugin@marketplace`, and here both
-are called `riprap` — the repetition is correct, not a typo. Nothing lands in any
-repository. You can stop here if all you want is the documents and skills.
-
-**`/riprap:install`** adds the half that has to live in the repo: the guardrail scripts,
-their shared pattern libraries, the git hooks, and the four stack commands the hooks call.
-Run it from the root of a git repository with a clean working tree.
-
-It is also the update path. Re-run it any time; it is idempotent.
-
----
+* TOC
+{:toc}
+</nav>
 
 ## Requirements
 
@@ -43,14 +34,29 @@ It is also the update path. Re-run it any time; it is idempotent.
   `.orig` files that then need cleaning up.
 - **`jq`**, for the Claude hooks. `brew install jq` or `apt-get install jq`.
 
-`jq` is worth installing before anything else. The hooks read the tool payload as JSON on
-stdin, and without it the three blocking hooks — secret hygiene, the destructive-command
-blocker, the merge gate — **refuse every call they inspect**, with a message telling you to
-install it. That is deliberate: a guardrail that waved things through because a dependency
-was missing would be worse than one that stops you. The git hooks and `bin/riprap` do not
-need `jq`.
+> **Install `jq` before anything else.** The hooks read the tool payload as JSON on stdin,
+> and without it the three blocking hooks — secret hygiene, the destructive-command blocker,
+> the merge gate — **refuse every call they inspect**, with a message telling you to install
+> it. That is deliberate: a guardrail that waved things through because a dependency was
+> missing would be worse than one that stops you. The git hooks and `bin/riprap` do not need
+> `jq`.
+{: .callout .callout-warn}
 
----
+## What each step does
+
+**`/plugin marketplace add owahab/riprap`** registers this repository as a plugin
+marketplace. riprap is its own marketplace, so there is no directory to go through.
+
+**`/plugin install riprap@riprap`** installs the plugin: 15 guardrail documents, four
+skills, and the Claude hook registrations. The form is `plugin@marketplace`, and here both
+are called `riprap`. Nothing lands in any repository. You can stop here if all you want is
+the documents and skills.
+
+**`/riprap:install`** adds the half that has to live in the repo: the guardrail scripts,
+their shared pattern libraries, the git hooks, and the four stack commands the hooks call.
+Run it from the root of a git repository with a clean working tree.
+
+It is also the update path. Re-run it any time; it is idempotent.
 
 ## What lands in your repository
 
@@ -70,22 +76,9 @@ bin/
 |---|---|---|
 | namespaced | `bin/hooks/riprap/**`, `bin/riprap` | Replaced wholesale; files riprap stops shipping are removed |
 | seed | `bin/hooks/git/*`, `bin/{test,lint,format,setup}` | Written once if absent, never replaced |
+{: .tiers}
 
-### Before you install: the licence lands in your repo too
-
-riprap is **source-available** under PolyForm Perimeter 1.0.1, not an OSI open source licence. Two
-consequences worth knowing before the files are in your git history rather than after:
-
-- **`bin/hooks/riprap/LICENSE` is written into your repository**, because the licence requires its
-  terms and notice to travel with the files they cover. It is namespaced, so it will never
-  overwrite your project's own root `LICENSE`.
-- **Automated licence scanners will flag it.** PolyForm has no SPDX identifier, so FOSSA, Snyk, and
-  Black Duck classify it as unknown or custom. If your organisation denies uncategorised licences
-  by default, this will raise a policy conflict. Clear it with whoever owns that policy first.
-
-What the licence actually asks of you as an adopter is narrow: use riprap for anything, including
-commercially and on your employer's code; just don't provide to others a product that competes with
-riprap. Building your own software with it is not competing with it.
+The complete file-by-file inventory is on the [reference page](reference.md).
 
 **Your `CLAUDE.md` and `.claude/settings.json` are never touched.** The documents reach the
 model through a SessionStart hook and the skills are namespaced by the harness as
@@ -95,22 +88,36 @@ nothing to merge, and a project with its own `/learn` keeps it.
 Everything riprap overwrites lives under a path only riprap uses, so installing into a repo
 that already has its own instructions, skills, and hooks cannot clobber any of them.
 
----
+> **A copy of riprap's licence lands at `bin/hooks/riprap/LICENSE`**, because the licence
+> requires its terms to travel with the files they cover. It is namespaced and will never
+> overwrite your project's own `LICENSE`. If your organisation runs automated licence
+> scanning, read [licence and the name](license.md) before installing rather than after —
+> PolyForm has no SPDX identifier, and scanners will flag it.
+{: .callout .callout-warn}
 
-## After installing
-
-### Fill in the stack seams
+## The stack seams
 
 `bin/test`, `bin/lint`, `bin/format`, and `bin/setup` are the only files that know what
 language you write in. Hooks and CI call **only** these, which is what stops local checks
-drifting from CI.
+drifting from CI — there is one definition of "run the tests".
 
-Each ships as a stub carrying a line reading `# riprap:stub`. Until you replace it, the
-hook that calls it does nothing — `bin/riprap verify` lists which are outstanding.
+| Stub | Contract | Called by |
+|---|---|---|
+| `bin/test` | run the suite | pre-push, CI |
+| `bin/lint` | lint the repo, or the given paths | pre-commit, CI |
+| `bin/format` | format one file | format-on-write hook |
+| `bin/setup` | install hooks and dependencies | you, once |
+
+Each ships as a stub carrying a line reading `# riprap:stub`. Until you replace it, the hook
+that calls it does nothing and says so — `bin/riprap verify` lists which are outstanding.
 `/riprap:install` will look at your project, propose wrappers over what it finds, and ask
-before writing them.
+before writing them. It asks rather than writes because a `pre-commit` pointed at the wrong
+linter passes everything and enforces nothing, which looks identical to working.
 
-### Tell your teammates
+One cost worth knowing up front: `bin/format` runs on **every** write. If your formatter is
+slow, you will feel it.
+
+## Wire the git hooks, and tell your teammates
 
 `core.hooksPath` is **local git config. It is not cloned.** A teammate who checks the repo
 out has no hooks at all until something runs `bin/riprap wire` — and they may not have the
@@ -124,7 +131,7 @@ Add it to whatever people already run on a fresh clone:
 bin/riprap wire
 ```
 
-### Verify
+## Verify
 
 ```bash
 bin/riprap verify
@@ -134,8 +141,6 @@ Checks that the hooks are present and executable, that their pattern libraries r
 that the stack seams are configured — and that `core.hooksPath` points at a directory which
 actually contains an executable `pre-commit`. That last one catches the common state where
 the setting looks configured and enforces nothing.
-
----
 
 ## If another tool already owns your git hooks
 
@@ -156,23 +161,40 @@ empty stream and no way to know.
 
 Both sets of checks then run on every commit.
 
----
+## The overlaps to check after installing
+
+Installing into a mature repository is safe, but it can leave you running two sources of
+truth. `/riprap:install` reports each of these and asks; none of it is acted on for you.
+
+- **Documents.** A file in your `.claude/instructions/` with the same basename as one of
+  riprap's. Yours still wins, but the two will now drift, and you should decide which rule
+  you meant to keep.
+- **Skills.** A directory in `.claude/skills/` with the same name as one of riprap's. These
+  no longer collide, since riprap's are `/riprap:<name>` — but two skills with near-identical
+  descriptions leave the model choosing between them.
+- **Hooks.** A command in `.claude/settings.json` whose basename matches one of riprap's
+  guardrail scripts. Both will now run: two blocks for the same violation.
+- **Formatters.** More than one `PostToolUse` hook matching `Edit|Write`. Two formatters on
+  every write will fight each other.
+- **Local settings.** A `hooks` key in `.claude/settings.local.json`, which shadows the
+  project file — and is the one that is hardest to notice, because it is usually not in git.
+
+## Suggested permissions
+
+riprap ships a `permissions.suggested.json` and **prints it rather than applying it**.
+
+Widening an allowlist is a privilege grant, and riprap's own merge-gate rule puts
+`.claude/settings.json` on the list of paths that need a human. Merging it silently would
+break the rule riprap is there to enforce. What a deny-list can and cannot achieve is on
+[what riprap tells the model](rules.md#what-the-permission-lists-can-and-cannot-do).
 
 ## Extending riprap's rules
 
-Your own guardrails go in `bin/hooks/lib/`, which riprap never writes to.
-
-To add a pattern to a rule riprap *already* enforces, do not fork its library — you would
-lose every future upstream fix to the rest of it. Add
-`bin/hooks/lib/<rule>-patterns.local.sh` instead; riprap's library sources it if present,
-so your patterns survive an update.
-
-```bash
-# bin/hooks/lib/secret-patterns.local.sh
-SECRET_TOKEN_PATTERNS+=( 'acme_[A-Za-z0-9]{32}' )
-```
-
----
+Your own guardrails go in `bin/hooks/lib/`, which riprap never writes to. To add a pattern to
+a rule riprap *already* enforces, do not fork its library —
+[extend it](guardrails.md#extending-a-rule-riprap-already-enforces) with a
+`-patterns.local.sh` file, so your patterns survive an update and you keep every upstream
+fix to the rest.
 
 ## Updating
 
@@ -190,9 +212,19 @@ rm -rf bin/hooks/riprap bin/riprap
 Then uninstall the plugin through `/plugin`. Your seed files — the git hook entry points
 and the four stack commands — are yours, and deleting them is your call.
 
+## Optional companions
+
+All optional, all configured in your user-level `~/.claude/`, none of them touched by riprap.
+
+- [Superpowers](https://claude.com/plugins/superpowers) — process skills (brainstorming, systematic debugging, TDD, writing plans, verification) that pair naturally with riprap's rules.
+- [RTK](https://github.com/rtk-ai/rtk) — a token-optimised CLI proxy that wraps noisy dev commands and filters their output.
+- [Peon Ping](https://www.peonping.com/) — character-voice audio notifications, so you hear when Claude needs you instead of watching the terminal.
+{: .doc-links}
+
 ---
 
-## Further reading
-
-- [Guardrail architecture](guardrails.md) — how a rule is made to hold
+- [Guardrail architecture](guardrails.md) — what is enforced, and how a rule is made to hold
+- [What riprap tells the model](rules.md) — the rules, and what they cost you in context
+- [Reference](reference.md) — every document, skill, hook and file, catalogued
 - [Source on GitHub](https://github.com/owahab/riprap)
+{: .doc-links}

@@ -48,7 +48,7 @@ riprap is a Claude Code plugin. There is nothing to clone.
 
 ```
 /plugin marketplace add owahab/riprap
-/plugin install riprap
+/plugin install riprap@riprap
 /riprap:install
 ```
 
@@ -60,7 +60,7 @@ four stack commands the hooks call.
 Run `/riprap:install` again any time. It is the update path.
 
 Full instructions — requirements, fresh clones, coexisting with an existing hook manager —
-are at [riprap.dev/install](https://riprap.dev/install).
+are at [riprap.dev/install/](https://riprap.dev/install/).
 
 ### What riprap will and will not touch in your repo
 
@@ -97,11 +97,15 @@ Improvements flow back as ordinary pull requests.
 **From the plugin** — outside your repo, nothing to maintain:
 
 ```
-instructions/     15 docs, indexed by task. A router is injected each session;
-                  the rest are read on demand.
+instructions/     15 guardrail documents, indexed by task. A router is injected each
+                  session; the rest are read on demand.
 skills/           /riprap:learn  /riprap:spec  /riprap:council  /riprap:branch-cleaner
 hooks/            the Claude hook registrations, and the session router
 ```
+
+Every document, skill and hook is catalogued at
+[riprap.dev/reference/](https://riprap.dev/reference/) — worth reading before you install
+rather than after.
 
 **In your repo**, after `/riprap:install`:
 
@@ -116,7 +120,8 @@ bin/
       claude/               PreToolUse / PostToolUse — exit 2 blocks a tool call
       git/                  exit 1 rejects a commit
       lib/                  pattern libraries, shared by BOTH families
-      tests/                71 assertions, runnable in your own repo
+      tests/                a named regression test per escape, each paired with a
+                            must-not-false-block control. Runnable in your own repo.
 ```
 
 ### The stack seam
@@ -236,3 +241,7 @@ This is not an OSI open source licence, and that is a deliberate trade. It keeps
 read, use, and contribute to, while keeping it from being sold out from under the work that went
 into it. If you want to improve riprap, the route is a pull request — see
 [CONTRIBUTING.md](CONTRIBUTING.md), which is upfront about what that asks of you.
+
+Installing riprap places a copy of the licence in your repository, and PolyForm has no SPDX
+identifier, so automated licence scanners will flag it. If your organisation scans, read
+[riprap.dev/license/](https://riprap.dev/license/) before installing rather than after.

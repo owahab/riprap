@@ -58,6 +58,85 @@ jobs:
                    plugin/hooks/hooks.json plugin/permissions.suggested.json; do
             jq -e . "$f" > /dev/null || { echo "invalid JSON: $f"; exit 1; }
           done
+          # Only plugin.json is consumed — install-payload stamps VERSION from it. A
+          # marketplace file advertising a different number is a listing that promises a
+          # version nobody can install.
+          m=$(jq -r .metadata.version .claude-plugin/marketplace.json)
+          p=$(jq -r .version plugin/.claude-plugin/plugin.json)
+          [ "$m" = "$p" ] || { echo "❌ marketplace says $m, plugin says $p"; exit 1; }
+          echo "✅ plugin metadata valid, versions agree"
+
+      # The site and the README describe the same thing at two lengths, and prose is
+      # allowed to differ. Counts, commands and URLs are not: every check below is one
+      # that has already gone wrong here, or protects a URL something else prints.
+      - name: The site and the README agree with the repository
+        run: |
+          fail=0
+
+          # 1. The catalogue cannot rot, in either direction. A sixteenth document that
+          #    the site never mentions is invisible: nothing looks broken.
+          for f in plugin/instructions/*.md; do
+            n=$(basename "$f")
+            [ "$n" = "README.md" ] && continue
+            grep -q "$n" docs/reference.md || {
+              echo "❌ $n ships but docs/reference.md does not list it"; fail=1; }
+          done
+          grep -oE '`?[a-z-]+\.md`?' docs/reference.md | tr -d '`' | sort -u |
+          while IFS= read -r n; do
+            case "$n" in index.md|install.md|guardrails.md|rules.md|reference.md|license.md) continue ;; esac
+            [ -f "plugin/instructions/$n" ] || {
+              echo "❌ docs/reference.md lists $n, which is not shipped"; exit 1; }
+          done || fail=1
+
+          # 2. Counts cannot contradict the filesystem. This drifted twice before the site
+          #    existed: 15 versus 16 documents, and an assertion count off by nine.
+          #    "guardrail document" is the reserved phrase for what riprap ships, which is
+          #    why it is the one matched — "instruction document" describes the private
+          #    codebase riprap was distilled from and carries a different, larger number.
+          n=$(find plugin/instructions -name '*.md' ! -name README.md | wc -l | tr -d ' ')
+          bad=$(grep -rnoiE '[0-9]+ guardrail document' README.md docs/ \
+                  | grep -vE "[^0-9]$n guardrail document" || true)
+          [ -z "$bad" ] || { echo "❌ document count is not $n:"; echo "$bad"; fail=1; }
+
+          s=$(find plugin/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
+          [ "$s" -eq 4 ] || { echo "❌ $s skills ship, but the site says four"; fail=1; }
+
+          # 3. One install command form. Both work, but two documented forms is how the
+          #    README and the site started disagreeing in the first place.
+          bad=$(grep -rn '/plugin install riprap' README.md docs/ | grep -v 'riprap@riprap' || true)
+          [ -z "$bad" ] || { echo "❌ unqualified install command:"; echo "$bad"; fail=1; }
+
+          # 4. Internal links resolve. jekyll-relative-links rewrites these at build
+          #    time, so a typo is a 404 that only shows up in production.
+          grep -rhoE '\]\([a-z-]+\.md' docs/*.md | sed 's/^](//' | sort -u |
+          while IFS= read -r t; do
+            [ -f "docs/$t" ] || { echo "❌ docs links to $t, which does not exist"; exit 1; }
+          done || fail=1
+
+          # 4b. And so do the fragments. A link to a heading that was renamed lands the
+          #     reader at the top of the right page with no error, which is why it survives
+          #     review — it looks like it worked. Slugs are kramdown's: lowercased,
+          #     punctuation dropped, spaces hyphenated.
+          grep -rhoE '\]\([a-z-]+\.md#[a-z0-9-]+\)' docs/*.md | sed 's/^](//;s/)$//' | sort -u |
+          while IFS= read -r ref; do
+            f="docs/${ref%%#*}"; frag="${ref##*#}"
+            grep -oE '^#{2,3} .*' "$f" \
+              | sed -e 's/^#* //' -e 's/[^A-Za-z0-9 -]//g' -e 's/ /-/g' \
+              | tr '[:upper:]' '[:lower:]' | grep -qx "$frag" || {
+                echo "❌ $ref points at a heading that does not exist"; exit 1; }
+          done || fail=1
+
+          # 5. install-payload prints https://riprap.dev/#license to the terminal of
+          #    anyone upgrading from 0.1.x, and old plugin versions keep printing it.
+          #    Renaming that heading — or spelling it "Licence" — silently breaks it.
+          grep -qx '## License' docs/index.md || {
+            echo "❌ docs/index.md lost its '## License' heading; riprap.dev/#license breaks"; fail=1; }
+
+          # 6. If CNAME leaves the default branch, GitHub clears the custom domain.
+          [ -s docs/CNAME ] || { echo "❌ docs/CNAME is missing or empty"; fail=1; }
+
+          [ "$fail" -eq 0 ] && echo "✅ site, README and repository agree"
+          exit "$fail"
 
       # The founding incident: a hook was written, reviewed, merged — and never
       # referenced from any settings file. It looked enforced for months and was
