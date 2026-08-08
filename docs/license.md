@@ -12,9 +12,8 @@ redirect_from:
 ---
 
 riprap is **source-available** under [PolyForm Perimeter 1.0.1](https://github.com/influpert/riprap/blob/main/LICENSE).
-That is not an OSI open source licence, and the difference matters in exactly two places:
-what you may ship, and what your organisation's tooling will say about the file that lands
-in your repository. Both are below.
+That matters in exactly two places: what you may ship, and what your organisation's tooling
+will say about the file that lands in your repository. Both are below.
 
 The short version: use it for anything, including at work; do not ship a competing product;
 keep the notice.
@@ -68,29 +67,6 @@ Clear it with whoever owns that policy first. What you are asking them to approv
 and worth stating in their terms: a source-available licence, on a development-time tool,
 that permits unrestricted commercial use and imposes no obligation on the software you build
 with it. The only prohibition is on redistributing a competing product.
-
-## This is not OSI open source, and that is deliberate
-
-The trade is stated plainly rather than hidden behind a badge: it keeps riprap open to read,
-use, and contribute to, while keeping it from being sold out from under the work that went
-into it.
-
-The cost of that trade is real, and it is yours to weigh. It means riprap will not appear in
-some dependency allowlists, will not be packaged by distributions that require OSI approval,
-and cannot be forked into a rival. If any of those matter more to you than what riprap does,
-it is the wrong tool, and that is a legitimate conclusion.
-
-## riprap was MIT through 0.1.x
-
-From 0.2.0 it is source-available under PolyForm Perimeter. If you installed an earlier
-version, the installer tells you so on the upgrade rather than changing the terms quietly —
-a licence moving under someone without a word is not acceptable even when the files are ones
-riprap owns.
-
-What changed for an adopter is narrow. Use, including commercial use, was permitted before
-and is permitted now. What is newly prohibited is redistributing riprap itself as a
-competing product. The version you already have remains under the licence it shipped with;
-that is how licences work, and nothing here retracts it.
 
 ## The name
 
