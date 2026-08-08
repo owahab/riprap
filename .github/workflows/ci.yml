@@ -126,9 +126,9 @@ jobs:
                 echo "❌ $ref points at a heading that does not exist"; exit 1; }
           done || fail=1
 
-          # 5. install-payload prints https://riprap.dev/#license to the terminal of
-          #    anyone upgrading from 0.1.x, and old plugin versions keep printing it.
-          #    Renaming that heading — or spelling it "Licence" — silently breaks it.
+          # 5. https://riprap.dev/#license is a published URL, and installer copies already
+          #    in plugin caches print it into the terminal. Renaming that heading — or
+          #    spelling it "Licence" — silently breaks it.
           grep -qx '## License' docs/index.md || {
             echo "❌ docs/index.md lost its '## License' heading; riprap.dev/#license breaks"; fail=1; }
 

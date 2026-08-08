@@ -13,10 +13,10 @@ Two things are worth reading before you spend time on a change.
 projects, for a for-profit employer — modify it, and send changes back. What the license does not
 permit is providing to others a product that competes with riprap.
 
-**That means publishing a fork is not a route available to you.** On an MIT project, a contributor
-who dislikes a decision can fork and ship their own version. Here they cannot. The sanctioned route
-for an improvement is a pull request to this repository. That is a real constraint, it is a
-deliberate trade, and you should know about it before you write code rather than after.
+**That means publishing a fork is not a route available to you.** Elsewhere, a contributor who
+dislikes a decision can fork and ship their own version. Here they cannot: the sanctioned route for
+an improvement is a pull request to this repository. That is a real constraint, it is a deliberate
+trade, and you should know about it before you write code rather than after.
 
 **Contributions require a CLA**, and it is one that lets Us relicense — including commercially. See
 [CLA.md](CLA.md), particularly Section 2.3. In exchange, Section 2.3 binds Us to keep your

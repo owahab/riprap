@@ -220,22 +220,20 @@ about it:
 
 ## License
 
-<!-- The slug of this heading is load-bearing. plugin/scripts/install-payload prints
-     https://riprap.dev/#license into the terminal of anyone upgrading from 0.1.x, and old
-     plugin versions in the wild will keep printing it. Do not rename this heading, and do
-     not change "License" to "Licence" — the anchor would move and that URL would break. -->
+<!-- The slug of this heading is load-bearing: https://riprap.dev/#license is a published
+     URL, and installer copies already sitting in plugin caches print it into the terminal.
+     Do not rename this heading, and do not change "License" to "Licence" — the anchor
+     moves and that URL breaks for everyone who follows it. -->
 
-riprap is **source-available** under PolyForm Perimeter 1.0.1, not an OSI open source
-licence.
+riprap is **source-available** under PolyForm Perimeter 1.0.1.
 
 Use it for anything, including commercially and at work. What you may not do is provide to
 others a product that competes with riprap — you cannot repackage and sell it, and you
 cannot publish a competing fork, free ones included. Attribution travels with every copy,
 and the name is reserved.
 
-riprap was MIT through 0.1.x; from 0.2.0 it is source-available. Installing it also places a
-copy of the licence in your repository, which automated licence scanners will flag, because
-PolyForm has no SPDX identifier. If your organisation scans, read
+Installing it also places a copy of the licence in your repository, which automated licence
+scanners will flag, because PolyForm has no SPDX identifier. If your organisation scans, read
 [licence and the name](license.md) before installing rather than after.
 
 ## Further reading

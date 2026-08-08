@@ -58,13 +58,6 @@ VERSION="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
   "$PLUGIN_ROOT/.claude-plugin/plugin.json" | head -1)"
 VERSION="${VERSION:-unknown}"
 
-# What the target had before this run, read before anything overwrites it. Used
-# only to decide whether to say something about the licence change; an absent
-# file means a first install, which needs no notice.
-PRIOR_VERSION=""
-[ -f "$TARGET/bin/hooks/riprap/VERSION" ] &&
-  PRIOR_VERSION="$(head -1 "$TARGET/bin/hooks/riprap/VERSION")"
-
 manifest_entries() { grep -vE '^[[:space:]]*(#|$)' "$MANIFEST"; }
 
 in_namespace() {
@@ -189,19 +182,5 @@ printf '%s\n' "$VERSION" > "$TARGET/bin/hooks/riprap/VERSION"
 
 printf '\n%s added, %s refreshed, %s pruned, %s kept.\n' \
   "$(count "$plan_add")" "$(count "$plan_update")" "$(count "$plan_prune")" "$(count "$plan_skip")"
-
-# riprap was MIT through 0.1.x and is source-available from 0.2.0. Because the
-# namespaced tier is overwritten wholesale, an adopter who installed under MIT
-# would otherwise have the new terms written into their repository with nothing
-# said about it. A licence changing under someone silently is not acceptable
-# even when the files are ones riprap owns.
-case "$PRIOR_VERSION" in
-  ''|unknown|0.1.*)
-    [ "$PRIOR_VERSION" = "" ] || printf '\n%s\n' \
-      "Note: riprap was MIT through 0.1.x. From 0.2.0 it is source-available under
-      PolyForm Perimeter 1.0.1 — use it for anything including commercially, but
-      do not provide to others a product that competes with riprap. The terms are
-      at bin/hooks/riprap/LICENSE, and https://riprap.dev/#license summarises them." ;;
-esac
 
 printf '\nNext:  bin/riprap wire\n'
